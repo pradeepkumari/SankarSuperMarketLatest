@@ -1,0 +1,6 @@
+framework module Pods_SankarSuperMarket {
+  umbrella header "Pods-SankarSuperMarket-umbrella.h"
+
+  export *
+  module * { export * }
+}
