@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SigninViewController: UIViewController {
+class SigninViewController: UIViewController, UITextFieldDelegate {
     
 
     @IBOutlet weak var txtmailid: UITextField!
@@ -23,11 +23,14 @@ class SigninViewController: UIViewController {
     var passcode = ""
     var userid = ""
 
+    @IBOutlet weak var subview: UIScrollView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         signin.layer.cornerRadius = 5
         cancel.layer.cornerRadius = 5
+        txtmailid.delegate = self
+        txtpassword.delegate = self
         let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
         view.addGestureRecognizer(tap)
 
@@ -56,6 +59,34 @@ class SigninViewController: UIViewController {
        }
     }
     
+    func textFieldDidBeginEditing(textField: UITextField) {
+        if(textField == txtmailid) {
+            animateViewMoving(true, moveValue: 200)
+        }
+        if(textField == txtpassword) {
+            animateViewMoving(true, moveValue: 200)
+        }
+
+    }
+    func textFieldDidEndEditing(textField: UITextField) {
+        if(textField == txtmailid) {
+            animateViewMoving(false, moveValue: 200)
+        }
+        if(textField == txtpassword) {
+            animateViewMoving(false, moveValue: 200)
+        }
+
+    }
+    func animateViewMoving (up:Bool, moveValue :CGFloat){
+        let movementDuration:NSTimeInterval = 0.3
+        let movement:CGFloat = ( up ? -moveValue : moveValue)
+        UIView.beginAnimations( "animateView", context: nil)
+        UIView.setAnimationBeginsFromCurrentState(true)
+        UIView.setAnimationDuration(movementDuration )
+        self.view.frame = CGRectOffset(self.view.frame, 0,  movement)
+        UIView.commitAnimations()
+        
+    }
     
     func sendrequesttoserver(url : String,value : String)
     {

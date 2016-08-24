@@ -18,7 +18,7 @@ class ImageViewController: UIViewController, UICollectionViewDelegate, UICollect
     var username1 = ""
     var password1 = ""
     @IBOutlet weak var collectionView: UICollectionView!
-    
+     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,7 +29,7 @@ class ImageViewController: UIViewController, UICollectionViewDelegate, UICollect
                 home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
                 navigationItem.rightBarButtonItem = home
 
-
+        activityIndicator.startAnimating()
 
         Reachability().checkconnection()
         sendrequesttoserver()
@@ -86,7 +86,7 @@ class ImageViewController: UIViewController, UICollectionViewDelegate, UICollect
         let imgpath = Appconstant.IMAGEURL+"Images/Gallery/"+self.imgurl[indexPath.row]
         let images =  UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
         img.image = images
-        
+        activityIndicator.stopAnimating()
         return cell
     }
     func collectionView(collectionView: UICollectionView, shouldSelectItemAtIndexPath indexPath: NSIndexPath) -> Bool {

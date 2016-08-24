@@ -31,7 +31,7 @@
 		84806FD71D64237A00AB2AFF /* GoogleAppUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84806FAA1D64237A00AB2AFF /* GoogleAppUtilities.framework */; };
 		84806FD81D64237A00AB2AFF /* GoogleAuthUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84806FAD1D64237A00AB2AFF /* GoogleAuthUtilities.framework */; };
 		84806FD91D64237A00AB2AFF /* libGcmLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 84806FB51D64237A00AB2AFF /* libGcmLib.a */; };
-		84806FDA1D64237A00AB2AFF /* GoogleInterchangeUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84806FB81D64237A00AB2AFF /* GoogleInterchangeUtilities.framework */; };
+		84806FDA1D64237A00AB2AFF /* GoogleInterchangeUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84806FB81D64237A00AB2AFF /* GoogleInterchangeUtilities.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		84806FDB1D64237A00AB2AFF /* GoogleIPhoneUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84806FBB1D64237A00AB2AFF /* GoogleIPhoneUtilities.framework */; };
 		84806FDC1D64237A00AB2AFF /* GoogleNetworkingUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84806FBE1D64237A00AB2AFF /* GoogleNetworkingUtilities.framework */; };
 		84806FDD1D64237A00AB2AFF /* libGIPNSURL+FIFE_external.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 84806FC71D64237A00AB2AFF /* libGIPNSURL+FIFE_external.a */; };
@@ -913,7 +913,7 @@
 				TargetAttributes = {
 					84F8BC121D069C2F00577D74 = {
 						CreatedOnToolsVersion = 7.2;
-						DevelopmentTeam = NPBDP8J587;
+						DevelopmentTeam = 8MX5L97922;
 					};
 				};
 			};
@@ -1248,6 +1248,7 @@
 					"$(PROJECT_DIR)/Pods/GoogleUtilities/Frameworks",
 				);
 				INFOPLIST_FILE = SankarSuperMarket/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1256,7 +1257,7 @@
 					"$(PROJECT_DIR)/Pods/GoogleCloudMessaging/Libraries",
 					"$(PROJECT_DIR)/Pods/GoogleSignIn/Libraries",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.app.SankarSuperMarket;
+				PRODUCT_BUNDLE_IDENTIFIER = com.app.SankarSM;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/SankarSuperMarket-Bridging-Header.h";
@@ -1283,6 +1284,7 @@
 					"$(PROJECT_DIR)/Pods/GoogleUtilities/Frameworks",
 				);
 				INFOPLIST_FILE = SankarSuperMarket/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1291,7 +1293,7 @@
 					"$(PROJECT_DIR)/Pods/GoogleCloudMessaging/Libraries",
 					"$(PROJECT_DIR)/Pods/GoogleSignIn/Libraries",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.app.SankarSuperMarket;
+				PRODUCT_BUNDLE_IDENTIFIER = com.app.SankarSM;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/SankarSuperMarket-Bridging-Header.h";

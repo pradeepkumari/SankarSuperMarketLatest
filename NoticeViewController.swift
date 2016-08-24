@@ -14,6 +14,7 @@ class NoticeViewController: UIViewController, UITableViewDataSource, UITableView
     var password1 = ""
     
     @IBOutlet weak var toplabel: UILabel!
+
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     @IBOutlet weak var tableView: UITableView!
@@ -33,7 +34,7 @@ class NoticeViewController: UIViewController, UITableViewDataSource, UITableView
         // Do any additional setup after loading the view, typically from a nib.
         sendrequesttoserver();
         self.view.userInteractionEnabled = true
-        activityIndicator.stopAnimating()
+        
     }
     
     func getuserdetails(){
@@ -77,14 +78,20 @@ class NoticeViewController: UIViewController, UITableViewDataSource, UITableView
         noticecell.layer.borderWidth = 0.5
         noticecell.layer.borderColor = UIColor.grayColor().CGColor
 
-        
+        activityIndicator.stopAnimating()
         return noticecell
     }
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return notificationItems.count
     }
 
-    
+    func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+        let selectionColor = UIView() as UIView
+        selectionColor.layer.borderWidth = 1
+        selectionColor.layer.borderColor = UIColor.clearColor().CGColor
+        selectionColor.backgroundColor = UIColor.clearColor()
+        cell.selectedBackgroundView = selectionColor
+    }
     
 
     func sendrequesttoserver()

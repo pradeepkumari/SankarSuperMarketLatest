@@ -34,6 +34,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
     var btnvalue = 0
     var username1 = ""
     var password1 = ""
+
     @IBOutlet weak var tableView: UITableView!
  
     @IBOutlet weak var toplabel: UILabel!
@@ -356,6 +357,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     print(self.steppervalue[self.rowcount])
                     print(self.total)
                     self.rowcount = self.rowcount + 1
+                    
 
                 }
     

@@ -24,6 +24,10 @@ class SignupViewController: UIViewController,UITextFieldDelegate {
     @IBOutlet weak var txtmobileno: UITextField!
  
     @IBOutlet weak var txtpwd: UITextField!
+    
+    @IBOutlet weak var appimg: UIImageView!
+    
+    @IBOutlet weak var appnamelbl: UILabel!
 
     @IBOutlet weak var txtconfirmpwd: UITextField!
     var id = ""
@@ -38,7 +42,6 @@ class SignupViewController: UIViewController,UITextFieldDelegate {
         cancel.layer.cornerRadius = 5
         txtmobileno.delegate = self
         txtmobileno.keyboardType = UIKeyboardType.NumberPad
-
         
     }
     
@@ -182,13 +185,13 @@ class SignupViewController: UIViewController,UITextFieldDelegate {
     
     func textFieldDidBeginEditing(textField: UITextField) {
         if(textField.placeholder == "Mobile Number") {
-            animateViewMoving(true, moveValue: 150)
+            animateViewMoving(true, moveValue: 200)
         }
         if(textField.placeholder == "Password") {
-            animateViewMoving(true, moveValue: 150)
+            animateViewMoving(true, moveValue: 200)
         }
         if(textField.placeholder == "Confirm Password") {
-            animateViewMoving(true, moveValue: 150)
+            animateViewMoving(true, moveValue: 200)
         }
     func textField(textFieldToChange: UITextField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
  
@@ -208,13 +211,13 @@ class SignupViewController: UIViewController,UITextFieldDelegate {
     }
     func textFieldDidEndEditing(textField: UITextField) {
         if(textField.placeholder == "Mobile Number") {
-            animateViewMoving(false, moveValue: 150)
+            animateViewMoving(false, moveValue: 200)
         }
         if(textField.placeholder == "Password") {
-            animateViewMoving(false, moveValue: 150)
+            animateViewMoving(false, moveValue: 200)
         }
         if(textField.placeholder == "Confirm Password") {
-            animateViewMoving(false, moveValue: 150)
+            animateViewMoving(false, moveValue: 200)
         }
       
     }
@@ -226,6 +229,7 @@ class SignupViewController: UIViewController,UITextFieldDelegate {
         UIView.setAnimationDuration(movementDuration )
         self.view.frame = CGRectOffset(self.view.frame, 0,  movement)
         UIView.commitAnimations()
+        
     }
     
     

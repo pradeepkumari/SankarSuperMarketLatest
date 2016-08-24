@@ -19,9 +19,11 @@ class ViewPhoto: UIViewController, UICollectionViewDelegate, UICollectionViewDat
 
     @IBOutlet weak var collectionView: UICollectionView!
     
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        activityIndicator.startAnimating()
         albumid1 = albumid
 
     }
@@ -29,6 +31,7 @@ class ViewPhoto: UIViewController, UICollectionViewDelegate, UICollectionViewDat
         super.viewWillAppear(animated)
         albumimage.removeAll()
         Reachability().checkconnection()
+        
         sendrequesttoserver()
     }
 
@@ -40,7 +43,7 @@ class ViewPhoto: UIViewController, UICollectionViewDelegate, UICollectionViewDat
         let images =  UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
 //        imagelist.append(images!)
         img.image = images
-
+        activityIndicator.stopAnimating()
         return cell
     }
      func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {

@@ -40,10 +40,13 @@ class MovetocartViewController: UIViewController, UITableViewDataSource, UITable
         self.cartBtn.layer.shadowRadius = 2
         self.cartBtn.layer.shadowOffset = CGSize(width: 1, height: 1)
         self.cartBtn.layer.shadowColor = UIColor.grayColor().CGColor
-        cartBtn.setImage(UIImage(named: "mycart_36.png"), forState: UIControlState.Normal)
+        self.cartBtn.setTitle("3", forState: .Normal)
+        cartBtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
+        cartBtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
+        cartBtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
         cartBtn.tintColor = UIColor.whiteColor()
         cartBtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
-        cartBtn.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 35)
+//        cartBtn.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 35)
         //        cartbtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
         cartBtn.userInteractionEnabled = true
         cartBtn.translatesAutoresizingMaskIntoConstraints = false
@@ -119,6 +122,7 @@ class MovetocartViewController: UIViewController, UITableViewDataSource, UITable
         
         let request = NSMutableURLRequest(URL: NSURL(string: Appconstant.WEB_API+Appconstant.GET_ALL_WISHLIST_LINEITEM+wishlistLineid)!)
         request.HTTPMethod = "GET"
+      
         // set Content-Type in HTTP header
         
         
@@ -141,8 +145,8 @@ class MovetocartViewController: UIViewController, UITableViewDataSource, UITable
                     print("statusCode should be 200, but is \(httpStatus.statusCode)")
                     print("response = \(response)")
                 }
-                //    let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
-                //     print("responseString = \(responseString)")
+                    let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
+                     print("responseString = \(responseString)")
                 
                 let json = JSON(data: data!)
                 let items = json["result"]
@@ -386,5 +390,31 @@ class MovetocartViewController: UIViewController, UITableViewDataSource, UITable
         
     }
     
+//    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+//        if(segue.identifier == "goto_product2") {
+//            let nextviewcontroller = segue.destinationViewController as! ProductdetailViewController
+//            let indexPath = self.tableView.indexPathForSelectedRow
+//            
+//            
+//            nextviewcontroller.productimage =
+//            nextviewcontroller.productname =
+//            nextviewcontroller.prodesc =
+//            nextviewcontroller.proprice =
+//            nextviewcontroller.prodiscount =
+//            nextviewcontroller.proamount =
+//            nextviewcontroller.prounit =
+//            nextviewcontroller.protype =
+//            nextviewcontroller.proquantity =
+//            nextviewcontroller.individuvalid =
+//            nextviewcontroller.productid =
+//            nextviewcontroller.dis_price =
+//            nextviewcontroller.cartid = self.cartid
+//            nextviewcontroller.username1 = self.username1
+//            nextviewcontroller.password1 = self.password1
+//            
+//            
+//        }
+//    }
+
     
 }

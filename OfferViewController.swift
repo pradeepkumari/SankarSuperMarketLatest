@@ -33,10 +33,13 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
         self.cartbtn.layer.shadowRadius = 2
         self.cartbtn.layer.shadowOffset = CGSize(width: 1, height: 1)
         self.cartbtn.layer.shadowColor = UIColor.grayColor().CGColor
-        cartbtn.setImage(UIImage(named: "mycart_36.png"), forState: UIControlState.Normal)
+        self.cartbtn.setTitle("3", forState: .Normal)
+        cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
+        cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
+        cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
         cartbtn.tintColor = UIColor.whiteColor()
         cartbtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
-        cartbtn.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 35)
+//        cartbtn.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 35)
         //        cartbtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
 
         cartbtn.userInteractionEnabled = true

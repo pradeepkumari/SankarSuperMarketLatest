@@ -69,8 +69,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
     var pagesize = 4
     var orderbycolumn = ""
     var orderbytype = ""
-
-    @IBOutlet weak var categoryimages: UIImageView!
+    var headerimage: UIImageView!
     
     @IBOutlet weak var tableView: UITableView!
 
@@ -104,15 +103,27 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         self.cartbtn.layer.shadowRadius = 2
         self.cartbtn.layer.shadowOffset = CGSize(width: 1, height: 1)
         self.cartbtn.layer.shadowColor = UIColor.grayColor().CGColor
-        cartbtn.setImage(UIImage(named: "mycart_36.png"), forState: UIControlState.Normal)
+        
+        self.cartbtn.setTitle("3", forState: .Normal)
+        cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
+        cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
+        cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
         cartbtn.tintColor = UIColor.whiteColor()
         cartbtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
-        cartbtn.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 35)
-        //        cartbtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
+
         cartbtn.userInteractionEnabled = true
         cartbtn.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(cartbtn)
 
+        headerimage = UIImageView(image: self.categoryimage)
+        headerimage!.frame = CGRectMake(0,0,580,200)
+        self.tableView.tableHeaderView = headerimage
+        
+        
+        
+        
+        
+        
         searchController.searchBar.delegate = self
         searchBar.showsCancelButton = false
 //        searchController.searchBar.showsCancelButton = false
@@ -124,7 +135,6 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         navigationItem.rightBarButtonItems = [sort, search]
         self.view.userInteractionEnabled = false
         activityIndicator.startAnimating()
-        categoryimages.image = self.categoryimage
         Reachability().checkconnection()
         let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "", OrderByType: "", Productname: "", pageSize: 6, categoryID: Int(self.categoryID)!, pageNumber: pagenumber)!
         let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
@@ -162,6 +172,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
 
         }
         else{
+            self.view.userInteractionEnabled = true
             searchvalue = 0
             searchActive = false
             searchBar.hidden = true
@@ -186,10 +197,12 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
     func searchBarSearchButtonClicked(searchBar: UISearchBar) {
     }
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
-//        filterContentForSearchText(searchController.searchBar.text!)
+        filterContentForSearchText(searchController.searchBar.text!)
         if(searchBar.text! == ""){
+            self.view.userInteractionEnabled = false
         }
         else {
+            self.view.userInteractionEnabled = true
             self.searchtext = searchBar.text!
             let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "", OrderByType: "", Productname: searchBar.text!, pageSize: 50, categoryID: Int(self.categoryID)!, pageNumber: 0)!
             let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
@@ -475,7 +488,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                     }
                     if(item["ImageUrl"].stringValue.isEmpty){
                         let defaultimg = UIImage(named: "loading_sqr.png")
-                        print(defaultimg)
+
                         let categoryproduct = CategoryProduct(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue,  ProductPhoto : defaultimg!, Productimgurl: item["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems)!
                         self.categoryproductItems += [categoryproduct];
                     }

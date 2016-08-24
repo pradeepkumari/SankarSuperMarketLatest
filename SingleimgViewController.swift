@@ -20,7 +20,7 @@ class SingleimgViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         let imgpath = Appconstant.IMAGEURL+"Images/Gallery/"+self.imagelist[indexpath]
-        print(imgpath)
+
         let images =  UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
 
         img.image = images
@@ -46,7 +46,7 @@ class SingleimgViewController: UIViewController {
                     indexpath = count - 1
                 }
                 let imgpath = Appconstant.IMAGEURL+"Images/Gallery/"+self.imagelist[indexpath]
-                print(imgpath)
+                
                 let images =  UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
                 img.image = images
 //                img.image = self.imagelist[indexpath]
@@ -58,7 +58,7 @@ class SingleimgViewController: UIViewController {
                     indexpath = 0
                 }
                 let imgpath = Appconstant.IMAGEURL+"Images/Gallery/"+self.imagelist[indexpath]
-                print(imgpath)
+                
                 let images =  UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
                 img.image = images
 //                img.image = self.imagelist[indexpath]
