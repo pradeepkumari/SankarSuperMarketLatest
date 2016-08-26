@@ -26,7 +26,7 @@ class ProductdetailViewController: UIViewController {
     var cartid = 0
     var username1 = ""
     var password1 = ""
-    
+    var cartcountnumber = 0
     
  
     @IBOutlet weak var productimg: UIImageView!
@@ -52,7 +52,7 @@ class ProductdetailViewController: UIViewController {
         self.cartbtn.layer.shadowRadius = 2
         self.cartbtn.layer.shadowOffset = CGSize(width: 1, height: 1)
         self.cartbtn.layer.shadowColor = UIColor.grayColor().CGColor
-        self.cartbtn.setTitle("3", forState: .Normal)
+        self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
         cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
         cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
@@ -92,6 +92,8 @@ class ProductdetailViewController: UIViewController {
 
     @IBAction func AddtoCartBtn(sender: AnyObject) {
         Reachability().checkconnection()
+        self.cartcountnumber += 1
+        self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
         let productmodel = Productvariant.init(ID: self.individuvalid, ProductID: self.productid, ProductName: self.productname, Stock: Int(self.proquantity)!, Description: self.protype, Unit: self.prounit, Quantity: Int(self.proquantity)!, Price: Float(self.proprice)!, DiscountPercentage: Float(self.prodiscount)!, DiscountPrice: Float(self.dis_price)!)!
         
         

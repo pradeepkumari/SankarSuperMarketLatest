@@ -447,9 +447,95 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
     }
 
     @IBAction func ApplyBtn(sender: AnyObject) {
-      
+        let applyCoupon = ApplyCouponModel.init(ID: Int(userid)! , OfferCouponCode: codetextfield.text!)!
+        
+        let serializedjson  = JSONSerializer.toJson(applyCoupon)
+        
+        print(serializedjson)
+        print(Appconstant.WEB_API+Appconstant.APPLY_COUPON)
+        
+        sendrequesttoserverAddcart(Appconstant.WEB_API+Appconstant.APPLY_COUPON, value: serializedjson)
         
     }
+    
+    
+    func sendrequesttoserverAddcart(url : String,value : String)
+    {
+        let username = self.username1
+        let password = self.password1
+        let loginString = NSString(format: "%@:%@", username, password)
+        let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
+        let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
+        
+        
+        let request = NSMutableURLRequest(URL: NSURL(string: url)!)
+        request.HTTPMethod = "Post"
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(base64LoginString, forHTTPHeaderField: "Authorization")
+        request.addValue(Appconstant.TENANT, forHTTPHeaderField: "TENANT")
+        
+        
+        request.HTTPBody = value.dataUsingEncoding(NSUTF8StringEncoding)
+        
+        
+        
+        let task = NSURLSession.sharedSession().dataTaskWithRequest(request)
+            { data, response, error in
+                guard error == nil && data != nil else {                                                          // check for fundamental networking error
+                    
+                    return
+                }
+                
+                if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {           // check for http errors
+                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                    print("response = \(response)")
+                }
+                else {
+                    let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
+                    print((data))
+                    print("responseString_coupon = \(responseString!)")
+                    let json = JSON(data: data!)
+                    
+                    let item = json["exception"]
+                    print("json val==>>",String(item))
+                    self.handleResponse(String(item))
+                    //                    dispatch_async(dispatch_get_main_queue()) {
+                    //                        self.presentViewController(Alert().alert("", message: "Offer Expired"),animated: true,completion: nil)
+                    //                    }
+                }
+        }
+        
+        task.resume()
+        
+    }
+    func handleResponse(response: NSString)
+    {
+        if response == "Offer expired"
+        {
+            dispatch_async(dispatch_get_main_queue())
+                {
+                    self.presentViewController(Alert().alert("", message: "Offer Expired"),animated: true,completion: nil)
+            }
+        }
+        else if response == "Coupon code not found"
+        {
+            dispatch_async(dispatch_get_main_queue())
+                {
+                    self.presentViewController(Alert().alert("", message: "Coupon code not found"),animated: true,completion: nil)
+            }
+            
+        }
+        else
+        {
+            dispatch_async(dispatch_get_main_queue())
+                {
+                    self.presentViewController(Alert().alert("", message: "Coupon Applied Sucessfully"),animated: true,completion: nil)
+            }
+        }
+        
+    }
+
     
     
 }

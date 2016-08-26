@@ -45,7 +45,7 @@ class AccountViewController: UIViewController {
         self.profileimg.layer.cornerRadius = self.profileimg.frame.size.height/2
         self.profileimg.clipsToBounds = true
         self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
-        navigationController?.navigationBar.frame = CGRectMake(0, 0, 320, 44)
+
         home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
         navigationItem.rightBarButtonItem = home
 

@@ -69,6 +69,6 @@ struct Appconstant
     static let CREATE_WISH_LIST_LINEITEM = "/wishlist/createlineitem"
     static let DELETE_WISH_LIST_LINEITEM = "/wishlist/deletelineitem/"
     
-    
+    static let APPLY_COUPON = "/cart/applycoupon/"
     
 }

@@ -28,6 +28,7 @@ class MovetocartViewController: UIViewController, UITableViewDataSource, UITable
     var count = 0
     var username1 = ""
     var password1 = ""
+    var cartcountnumber = 0
     @IBOutlet weak var tableView: UITableView!
 
     @IBOutlet weak var cartBtn: UIButton!
@@ -40,7 +41,7 @@ class MovetocartViewController: UIViewController, UITableViewDataSource, UITable
         self.cartBtn.layer.shadowRadius = 2
         self.cartBtn.layer.shadowOffset = CGSize(width: 1, height: 1)
         self.cartBtn.layer.shadowColor = UIColor.grayColor().CGColor
-        self.cartBtn.setTitle("3", forState: .Normal)
+        self.cartBtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
         cartBtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
         cartBtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
         cartBtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
@@ -172,14 +173,22 @@ class MovetocartViewController: UIViewController, UITableViewDataSource, UITable
     }
     
     @IBAction func MoveToCartBtnAction(sender: AnyObject) {
+        var alertController:UIAlertController?
+        alertController = UIAlertController(title: "Are you sure want to move to cart?",
+            message: "",
+            preferredStyle: .Alert)
+        
+        let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
         Reachability().checkconnection()
+        self.cartcountnumber += self.listids.count
+        self.cartBtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
         let username = self.username1
         let password = self.password1
         let loginString = NSString(format: "%@:%@", username, password)
         let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
         let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
         
-        let request = NSMutableURLRequest(URL: NSURL(string: Appconstant.WEB_API+Appconstant.MOVE_TO_CART+wishlistLineid)!)
+        let request = NSMutableURLRequest(URL: NSURL(string: Appconstant.WEB_API+Appconstant.MOVE_TO_CART+self.wishlistLineid)!)
         request.HTTPMethod = "POST"
         // set Content-Type in HTTP header
         
@@ -205,7 +214,7 @@ class MovetocartViewController: UIViewController, UITableViewDataSource, UITable
                     print("Error")
                 }
                 else{
-                     self.presentViewController(Alert().alert("Message", message: "Added to cart"),animated: true,completion: nil)
+                     self.presentViewController(Alert().alert("Added to cart", message: ""),animated: true,completion: nil)
                 }
                 //    let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
                 //     print("responseString = \(responseString)")
@@ -227,36 +236,20 @@ class MovetocartViewController: UIViewController, UITableViewDataSource, UITable
         }
         
         task.resume()
+        }
+        let action1 = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+            
+        }
+        alertController?.addAction(action)
+        alertController?.addAction(action1)
+        self.presentViewController(alertController!,
+            animated: true,
+            completion: nil)
         
+
     }
     
-//    func inserintoDatabase() {
-//        print(self.listids.count)
-//        for(var i = 0; i<self.listids.count; i++){
-//            print(self.id[self.count - i])
-//            print(self.name[i])
-//            DBHelper().opensupermarketDB()
-//            let databaseURL = NSURL(fileURLWithPath:NSTemporaryDirectory()).URLByAppendingPathComponent("supermarket.db")
-//            let databasePath = databaseURL.absoluteString
-//            let supermarketDB = FMDatabase(path: databasePath as String)
-//            if supermarketDB.open() {
-//                
-//                let insertSQL = "INSERT INTO CARTITEMS (INDIVIDUALID, PID, PRODUCTNAME, QUANTITY, PRICE, IMAGEURL, DISCOUNTPERCENT, DISCOUNTPRICE, CARTLINEID) VALUES ('\(self.individualid[i])','\(self.productid[i])','\(self.name[i])','\(self.quantity[i])','\(self.price[i])','\(self.image[i])','\(self.discountpercent[i])','\(self.discountprice1[i])','\(self.id[self.count - i])')"
-//                
-//                let result = supermarketDB.executeUpdate(insertSQL,
-//                    withArgumentsInArray: nil)
-//                if !result {
-//                    //   status.text = "Failed to add contact"
-//                    print("Error: \(supermarketDB.lastErrorMessage())")
-//                }
-//                else
-//                {
-//                    self.presentViewController(Alert().alert("Title", message: "Item added to cart successfully"),animated: true,completion: nil)
-//                }
-//            }
-//        }
-//
-//    }
+
     
     
     func GetCartLineid()

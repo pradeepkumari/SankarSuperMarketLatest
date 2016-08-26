@@ -16,8 +16,10 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
     var startdate = [String]()
     var expirydate = [String]()
     var couponcode = [String]()
+    var userid = ""
     var username1 = ""
     var password1 = ""
+    var cartcountnumber = 0
 
     @IBOutlet weak var tableView: UITableView!
     var home: UIBarButtonItem!
@@ -33,7 +35,6 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
         self.cartbtn.layer.shadowRadius = 2
         self.cartbtn.layer.shadowOffset = CGSize(width: 1, height: 1)
         self.cartbtn.layer.shadowColor = UIColor.grayColor().CGColor
-        self.cartbtn.setTitle("3", forState: .Normal)
         cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
         cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
@@ -52,6 +53,11 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
         Reachability().checkconnection()
      sendrequesttoserverToGetOffer()
 
+    }
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        cartcountnumber = 0
+        Getcartcount()
     }
 
     override func didReceiveMemoryWarning() {
@@ -73,6 +79,7 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
                 withArgumentsInArray: nil)
             if (results.next())
             {
+                self.userid = "\(results.intForColumn("USERID"))"
                 self.username1 = results.stringForColumn("EMAILID")
                 self.password1 = results.stringForColumn("PASSWORD")
                 
@@ -206,6 +213,52 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
         self.presentViewController(Alert().alert("Coupon code copied", message: ""),animated: true,completion: nil)
     }
     
-    
+    func Getcartcount() {
+        let username = self.username1
+        let password = self.password1
+        let loginString = NSString(format: "%@:%@", username, password)
+        let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
+        let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
+        
+        
+        let request = NSMutableURLRequest(URL: NSURL(string: Appconstant.WEB_API+Appconstant.GET_CART_OPEN+self.userid)!)
+        request.HTTPMethod = "GET"
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(base64LoginString, forHTTPHeaderField: "Authorization")
+        request.addValue(Appconstant.TENANT, forHTTPHeaderField: "TENANT")
+        
+        let task = NSURLSession.sharedSession().dataTaskWithRequest(request)
+            { data, response, error in
+                guard error == nil && data != nil else {                                                          // check for fundamental networking error
+                    print("ERROR")
+                    print("response = \(response)")
+                    return
+                }
+                
+                if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {           // check for http errors
+                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                    print("response = \(response)")
+                }
+                
+                
+                let json = JSON(data: data!)
+                var item = json["result"]
+                for item2 in item["CartLineItemList"].arrayValue{
+                    
+                    self.cartcountnumber = self.cartcountnumber + 1
+                    
+                    
+                }
+                
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+                }
+        }
+        
+        task.resume()
+        
+    }
+
 
 }

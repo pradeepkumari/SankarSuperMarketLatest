@@ -69,6 +69,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
     var pagesize = 4
     var orderbycolumn = ""
     var orderbytype = ""
+    var cartcountnumber = 0
     var headerimage: UIImageView!
     
     @IBOutlet weak var tableView: UITableView!
@@ -104,7 +105,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         self.cartbtn.layer.shadowOffset = CGSize(width: 1, height: 1)
         self.cartbtn.layer.shadowColor = UIColor.grayColor().CGColor
         
-        self.cartbtn.setTitle("3", forState: .Normal)
+        self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
         cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
         cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
@@ -551,6 +552,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 nextviewcontroller.cartid = self.cartid
                 nextviewcontroller.username1 = self.username1
                 nextviewcontroller.password1 = self.password1
+                nextviewcontroller.cartcountnumber = self.cartcountnumber
             }
             else{
             nextviewcontroller.productimage = self.categoryproductItems[(indexPath?.row)!].ProductPhoto
@@ -568,6 +570,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
             nextviewcontroller.cartid = self.cartid
                 nextviewcontroller.username1 = self.username1
                 nextviewcontroller.password1 = self.password1
+                nextviewcontroller.cartcountnumber = self.cartcountnumber 
             }
           
         }
@@ -748,6 +751,8 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 if let cell = superview.superview as? ProductCell {
                     indexPath = tableView.indexPathForCell(cell)?.row
               //      print("\(indexPath)")
+                    self.cartcountnumber += 1
+                    self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
                 }
             }
         }
@@ -797,6 +802,8 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         print(indexPath)
         
         if searchActive == true {
+            self.cartcountnumber -= 1
+            self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
             if(listItems[indexPath.row].cartCount > 1){
                 
                 listItems[indexPath.row].cartCount = listItems[indexPath.row].cartCount - 1
@@ -816,7 +823,8 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                     preferredStyle: .Alert)
                 
                 let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
-                    
+                    self.cartcountnumber -= 1
+                    self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
                     self.listItems[indexPath.row].cartCount = self.listItems[indexPath.row].cartCount - 1
                     self.tableView.reloadData()
                     let decrementmodel = DecrementViewModel.init(userId: self.userid, productId: self.listItems[indexPath.row].ProductID, productVariantId: self.listItems[indexPath.row].ProductVariantID)!
@@ -838,7 +846,8 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         }
 
        else if(productcartcount[indexPath.row][0] > 1){
-          
+            self.cartcountnumber -= 1
+            self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
             self.productcartcount[indexPath.row][0] = self.productcartcount[indexPath.row][0] - 1
             self.tableView.reloadData()
             let decrementmodel = DecrementViewModel.init(userId: userid, productId: self.productid[indexPath.row][0], productVariantId: self.individualproductid[indexPath.row][0])!
@@ -855,7 +864,8 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 preferredStyle: .Alert)
             
             let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
-
+                self.cartcountnumber -= 1
+                self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
                 self.productcartcount[indexPath.row][0] = self.productcartcount[indexPath.row][0] - 1
                 self.tableView.reloadData()
                 let decrementmodel = DecrementViewModel.init(userId: self.userid, productId: self.productid[indexPath.row][0], productVariantId: self.individualproductid[indexPath.row][0])!
@@ -1367,8 +1377,6 @@ extension ProductViewController: UISearchResultsUpdating {
         print(serializedjson)
         sendrequesttoserverFilter(Appconstant.WEB_API+Appconstant.GET_PAGELIST, value: serializedjson);
         }
-
-
     }
 }
 

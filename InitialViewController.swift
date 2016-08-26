@@ -38,7 +38,7 @@ class InitialViewController: UIViewController {
     func addLogo() {
      
         
-        let img = UIImageView(image: UIImage(named: "ic_launcher.png"))
+        let img = UIImageView(image: UIImage(named: "appimg.png"))
 
         img.frame = CGRectMake( self.view.frame.size.width/2 - (50 + a/2) , 145 , 100 + a, 100 + a )
         a += 0.5

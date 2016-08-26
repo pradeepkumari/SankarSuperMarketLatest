@@ -20,6 +20,8 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
     var username1 = ""
     var password1 = ""
     var activitystop = 0
+    var cartcountnumber = 0
+    var userid = ""
     
     @IBOutlet weak var Open: UIBarButtonItem!
     
@@ -57,7 +59,6 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
         self.cartbtn.layer.shadowOffset = CGSize(width: 1, height: 1)
         self.cartbtn.layer.shadowColor = UIColor.grayColor().CGColor
 
-        self.cartbtn.setTitle("3", forState: .Normal)
         cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
         
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
@@ -65,21 +66,10 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
 
         cartbtn.tintColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
         cartbtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
-//        cartbtn.userInteractionEnabled = true
+        cartbtn.userInteractionEnabled = true
         cartbtn.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(cartbtn)
-        
-        
-        
-//        
-//        actionButton = ActionButton(attachedToView: self.view, items: [])
-//        actionButton.action = { button in button.toggleMenu() }
-//
-//        actionButton.setTitle("", forState: .Normal)
-//        actionButton.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
-//
-//        actionButton.setImage(UIImage(named: "mycart_36.png"), forState: UIControlState.Normal)
-        
+
         getuserdetails()
         
         
@@ -114,12 +104,12 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
         
         self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
         navigationItem.rightBarButtonItem = search
+        cartcountnumber = 0
+        Getcartcount()
         
         
         
         self.view.userInteractionEnabled = false
-        
-        
         
         self.view.userInteractionEnabled = true
     }
@@ -184,6 +174,7 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
                 withArgumentsInArray: nil)
             if (results.next())
             {
+                self.userid = "\(results.intForColumn("USERID"))"
                 self.username1 = results.stringForColumn("EMAILID")
                 self.password1 = results.stringForColumn("PASSWORD")
                 
@@ -210,7 +201,7 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
         let categorylbl = cell.viewWithTag(3) as! UILabel
         categorylbl.text = category.Name
         categoryimg.image = category.CategoryPhoto
-        
+
         cell.layer.borderWidth = 0.5
         cell.layer.borderColor = UIColor.grayColor().CGColor
 
@@ -351,12 +342,56 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
                 }
         }
         task.resume()
-        
+   
+    }
 
+    func Getcartcount() {
+        let username = self.username1
+        let password = self.password1
+        let loginString = NSString(format: "%@:%@", username, password)
+        let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
+        let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
+        
+        
+        let request = NSMutableURLRequest(URL: NSURL(string: Appconstant.WEB_API+Appconstant.GET_CART_OPEN+self.userid)!)
+        request.HTTPMethod = "GET"
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(base64LoginString, forHTTPHeaderField: "Authorization")
+        request.addValue(Appconstant.TENANT, forHTTPHeaderField: "TENANT")
+        
+        let task = NSURLSession.sharedSession().dataTaskWithRequest(request)
+            { data, response, error in
+                guard error == nil && data != nil else {                                                          // check for fundamental networking error
+                    print("ERROR")
+                    print("response = \(response)")
+                    return
+                }
+                
+                if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {           // check for http errors
+                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                    print("response = \(response)")
+                }
+                
+                
+                let json = JSON(data: data!)
+                var item = json["result"]
+                for item2 in item["CartLineItemList"].arrayValue{
+                    
+                    self.cartcountnumber = self.cartcountnumber + 1
+                    
+                    
+                }
+                
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+                }
+        }
+        
+        task.resume()
         
     }
 
-    
     func ChangeImageAction() {
         if (no_of_items >= count) {
             if (count < 0) {
@@ -382,8 +417,12 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
            let indexPath = self.tableView.indexPathForSelectedRow
                 nextview.categoryimage = self.categoryItems[(indexPath?.row)!].CategoryPhoto
             nextview.categoryID = self.categoryItems[(indexPath?.row)!].ID
+            nextview.cartcountnumber = self.cartcountnumber
             }
-       
+        if(segue.identifier == "goto_search"){
+            let nextvc = segue.destinationViewController as! SearchViewController
+            nextvc.cartcountnumber = self.cartcountnumber
+        }
     }
 
     

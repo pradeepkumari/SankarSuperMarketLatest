@@ -42,7 +42,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     var wishpath = 0
     var wishlistid = [String]()
     var wishlistname = [String]()
-    
+    var cartcountnumber = 0
 
     @IBOutlet weak var cartbtn: UIButton!
     @IBOutlet weak var activeIndicator: UIActivityIndicatorView!
@@ -65,7 +65,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         self.cartbtn.layer.shadowRadius = 2
         self.cartbtn.layer.shadowOffset = CGSize(width: 1, height: 1)
         self.cartbtn.layer.shadowColor = UIColor.grayColor().CGColor
-        self.cartbtn.setTitle("3", forState: .Normal)
+        self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
         cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
         cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
@@ -657,7 +657,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     @IBAction func PlusBtn(sender: AnyObject) {
         let point = sender.convertPoint(CGPointZero, toView: tableView)
         let indexPath = self.tableView.indexPathForRowAtPoint(point)!.row
-        
+        self.cartcountnumber += 1
+        self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
         listItems[indexPath].cartCount = listItems[indexPath].cartCount + 1
         self.tableView.reloadData()
         
@@ -679,7 +680,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         let indexPath = self.tableView.indexPathForRowAtPoint(point)!
         
         if(listItems[indexPath.row].cartCount > 1){
-            
+            self.cartcountnumber -= 1
+            self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
             listItems[indexPath.row].cartCount = listItems[indexPath.row].cartCount - 1
             self.tableView.reloadData()
             let decrementmodel = DecrementViewModel.init(userId: userid, productId: listItems[indexPath.row].ProductID, productVariantId: listItems[indexPath.row].ProductVariantID)!
@@ -697,7 +699,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 preferredStyle: .Alert)
             
             let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
-                
+                self.cartcountnumber -= 1
+                self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
                 self.listItems[indexPath.row].cartCount = self.listItems[indexPath.row].cartCount - 1
                 self.tableView.reloadData()
                 let decrementmodel = DecrementViewModel.init(userId: self.userid, productId: self.listItems[indexPath.row].ProductID, productVariantId: self.listItems[indexPath.row].ProductVariantID)!
@@ -830,7 +833,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 nextviewcontroller.cartid = self.cartid
             nextviewcontroller.username1 = self.username1
             nextviewcontroller.password1 = self.password1
-                
+            nextviewcontroller.cartcountnumber = self.cartcountnumber
             
         }
     }

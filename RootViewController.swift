@@ -22,9 +22,11 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         self.navigationController?.navigationBarHidden = true
         
-        let backgroundImage = UIImageView(frame: UIScreen.mainScreen().bounds)
+        let backgroundImage = UIImageView(frame: CGRectMake(0, 0, 320, 800))
+
         backgroundImage.image = UIImage(named: "greenbackground.jpeg")
 
+        
         self.tableView.insertSubview(backgroundImage, atIndex: 0)
         
 
