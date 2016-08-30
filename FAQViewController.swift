@@ -9,6 +9,7 @@
 import UIKit
 
 class FAQViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    @IBOutlet weak var sideBarButton: UIBarButtonItem!
 
     @IBOutlet weak var tableView: UITableView!
     
@@ -29,6 +30,8 @@ class FAQViewController: UIViewController, UITableViewDataSource, UITableViewDel
         Reachability().checkconnection()
         home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
         navigationItem.rightBarButtonItem = home
+        sideBarButton.target = revealViewController()
+        sideBarButton.action = Selector("revealToggle:")
         sendrequesttoserver()
 
         self.tableView.estimatedRowHeight = 200

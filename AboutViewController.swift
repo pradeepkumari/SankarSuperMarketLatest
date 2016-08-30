@@ -17,6 +17,7 @@ class AboutViewController: UIViewController {
     
     @IBOutlet weak var contentlabel: UILabel!
     
+    @IBOutlet weak var sideBarButton: UIBarButtonItem!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +26,8 @@ class AboutViewController: UIViewController {
         self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
         home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
         navigationItem.rightBarButtonItem = home
+        sideBarButton.target = revealViewController()
+        sideBarButton.action = Selector("revealToggle:")
             DBHelper().opensupermarketDB()
             let databaseURL = NSURL(fileURLWithPath:NSTemporaryDirectory()).URLByAppendingPathComponent("supermarket.db")
             let databasePath = databaseURL.absoluteString

@@ -191,6 +191,7 @@ static CGFloat scaledValue( CGFloat v1, CGFloat min2, CGFloat max2, CGFloat min1
 
 - (void)dragFrontViewToXLocation:(CGFloat)xLocation
 {
+    NSLog(@"xloc==>>%f",xLocation);
     CGRect bounds = self.bounds;
     
     xLocation = [self _adjustedDragLocationForLocation:xLocation];
@@ -1255,9 +1256,9 @@ const int FrontViewPositionNone = 0xff;
     
     if ( xLocation > 0 )
     {
-        if ( _rearViewController == nil ) xLocation = 0;
-        [self _rightViewDeploymentForNewFrontViewPosition:FrontViewPositionRight]();
-        [self _rearViewDeploymentForNewFrontViewPosition:FrontViewPositionRight]();
+//        if ( _rearViewController == nil ) xLocation = 0;
+//        [self _rightViewDeploymentForNewFrontViewPosition:FrontViewPositionRight]();
+//        [self _rearViewDeploymentForNewFrontViewPosition:FrontViewPositionRight]();
     }
     
     [_contentView dragFrontViewToXLocation:xLocation];

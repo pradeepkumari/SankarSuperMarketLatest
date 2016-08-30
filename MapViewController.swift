@@ -32,6 +32,7 @@ var addressline2 = ""
 class MapViewController: UIViewController {
     
     
+    @IBOutlet weak var sideBarButton: UIBarButtonItem!
     @IBOutlet weak var mapView: MKMapView!
     var username1 = ""
     var password1 = ""
@@ -40,6 +41,8 @@ class MapViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.tabBarController?.tabBar.hidden = true
+        sideBarButton.target = revealViewController()
+        sideBarButton.action = Selector("revealToggle:")
         getuserdetails()
         Reachability().checkconnection()
         sendrequesttoserverToGetLocation()

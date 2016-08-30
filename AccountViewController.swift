@@ -10,6 +10,7 @@ import UIKit
 
 class AccountViewController: UIViewController {
     
+    @IBOutlet weak var sideBarButton: UIBarButtonItem!
     
     @IBOutlet weak var notification: UIButton!
    
@@ -57,6 +58,10 @@ class AccountViewController: UIViewController {
         logout.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Left
         notification.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Left
         feedback.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Left
+        
+        sideBarButton.target = revealViewController()
+        sideBarButton.action = Selector("revealToggle:")
+        
     }
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)

@@ -10,6 +10,7 @@ import UIKit
 
 class ImageViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout{
 
+    @IBOutlet weak var sideBarButton: UIBarButtonItem!
     var albumid = [String]()
     var albumname = [String]()
     var imgurl = [String]()
@@ -28,6 +29,8 @@ class ImageViewController: UIViewController, UICollectionViewDelegate, UICollect
         
                 home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
                 navigationItem.rightBarButtonItem = home
+        sideBarButton.target = revealViewController()
+        sideBarButton.action = Selector("revealToggle:")
 
         activityIndicator.startAnimating()
 

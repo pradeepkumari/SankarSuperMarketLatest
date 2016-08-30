@@ -97,8 +97,16 @@ class CartconfirmViewController: UIViewController, UITableViewDelegate, UITableV
         debitbtn.setImage(UIImage(named: "unchecked.png"), forState: .Normal)
         tableView.delegate = self
         tableView.dataSource = self
-       
         
+        //SCROLLView Content Height
+//        var scrollViewHeight: CGFloat! = 0.0
+//        
+//        
+//        for view in scrollView.subviews as![UIView]
+//        {
+//            scrollViewHeight += view.frame.size.height
+//        }
+        self.scrollView.contentSize = CGSize(width:self.view.frame.size.width, height: 2000)
 
         
     }

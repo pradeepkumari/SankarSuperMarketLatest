@@ -8,6 +8,7 @@
 
 import UIKit
 
+
 class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate {
       var notificationItems = [Notification]()
      var categoryItems = [Category]()
@@ -23,15 +24,22 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
     var cartcountnumber = 0
     var userid = ""
     
+    
+    var baseViewForTopImageView: UIView = UIView()
+    var noticeimg: UIImageView = UIImageView()
+    var categorylbl: UILabel = UILabel()
+    var pageController: UIPageControl = UIPageControl()
+    
+    
     @IBOutlet weak var Open: UIBarButtonItem!
     
-    @IBOutlet weak var categorylbl: UILabel!
+//    @IBOutlet weak var categorylbl: UILabel!
    
-    @IBOutlet weak var noticeimg: UIImageView!
+//    @IBOutlet weak var noticeimg: UIImageView!
 
     @IBOutlet var activityIndicator: UIActivityIndicatorView!
    
-    @IBOutlet weak var pageController: UIPageControl!
+//    @IBOutlet weak var pageController: UIPageControl!
          var scrollView: UIScrollView!
     
     var sidemenu: UIBarButtonItem!
@@ -43,6 +51,25 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        baseViewForTopImageView.frame = CGRectMake(0, 0, self.view.frame.size.width , 200)
+        baseViewForTopImageView.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
+        tableView.tableHeaderView = baseViewForTopImageView
+        noticeimg.frame = CGRectMake(0, 0, self.view.frame.size.width, 175)
+        [baseViewForTopImageView .addSubview(noticeimg)]
+        categorylbl.frame = CGRectMake(0, noticeimg.frame.size.height, self.view.frame.size.width, 25)
+        categorylbl.text = "Categories"
+        categorylbl.tintColor = UIColor.whiteColor()
+        categorylbl.textAlignment = NSTextAlignment.Center
+        [baseViewForTopImageView .addSubview(categorylbl)]
+        pageController.frame = CGRectMake(self.view.center.x-20, noticeimg.frame.size.height-15, self.view.frame.size.width, 15)
+        configurePageControl()
+        [baseViewForTopImageView .addSubview(pageController)]
+        
+        
+        
+        
         activityIndicator.startAnimating()
          Reachability().checkconnection()
         sidemenu = UIBarButtonItem(image: UIImage(named: "Menu_36.png"), style: .Plain, target: self, action: Selector("action"))
@@ -91,7 +118,16 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
         
 
     }
-
+    
+    func configurePageControl()
+    {
+        self.pageController.numberOfPages = 5
+        self.pageController.currentPage = 0
+        self.pageController.tintColor = UIColor.redColor()
+        self.pageController.pageIndicatorTintColor = UIColor.whiteColor()
+        self.pageController.currentPageIndicatorTintColor = UIColor.greenColor()
+        
+    }
     
 
     override func viewDidAppear(animated: Bool) {
@@ -119,6 +155,7 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
         self.performSegueWithIdentifier("goto_search", sender: self)
         
     }
+    
 
     @IBAction func FloatBtnAction(sender: AnyObject) {
         self.performSegueWithIdentifier("fromhome_tocart", sender: self)
@@ -201,7 +238,7 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
         let categorylbl = cell.viewWithTag(3) as! UILabel
         categorylbl.text = category.Name
         categoryimg.image = category.CategoryPhoto
-
+        
         cell.layer.borderWidth = 0.5
         cell.layer.borderColor = UIColor.grayColor().CGColor
 
@@ -274,7 +311,7 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
                     let categoryimgPath = Appconstant.IMAGEURL+"Images/Category/"+item["ImageUrl"].stringValue
                     let img =  UIImage(data: NSData(contentsOfURL: NSURL(string:categoryimgPath)!)!)
                   
-                    let category = Category(ID: item["ID"].stringValue, Name: item["Name"].stringValue, CategoryPhoto : img!)!
+                    let category = Category(ID: item["ID"].stringValue, Name: item["Name"].stringValue, CategoryPhoto : img!, imagePath: categoryimgPath)!
                    
                     self.categoryItems += [category];
                  
@@ -336,6 +373,7 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
                 }
                 self.activitystop += 1
                 dispatch_async(dispatch_get_main_queue()) {
+                    print(self.notificationItems[0].NotificationPhoto)
                      self.noticeimg.image = self.notificationItems[0].NotificationPhoto
                     self.pageController.numberOfPages = self.no_of_items + 1
                     self.timer = NSTimer.scheduledTimerWithTimeInterval(7, target:self, selector: Selector("ChangeImageAction"), userInfo: nil, repeats: true)

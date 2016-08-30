@@ -14,7 +14,7 @@ class Category {
     var CategoryPhoto:UIImage?
     // MARK: Initialization
     
-    init?(ID: String, Name: String, CategoryPhoto: UIImage) {
+    init?(ID: String, Name: String, CategoryPhoto: UIImage, imagePath: String) {
         // Initialize stored properties.
         self.ID = ID
         self.Name = Name

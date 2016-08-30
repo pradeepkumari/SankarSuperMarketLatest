@@ -13,6 +13,7 @@ class NoticeViewController: UIViewController, UITableViewDataSource, UITableView
     var username1 = ""
     var password1 = ""
     
+    @IBOutlet weak var sideBarButton: UIBarButtonItem!
     @IBOutlet weak var toplabel: UILabel!
 
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
@@ -31,6 +32,8 @@ class NoticeViewController: UIViewController, UITableViewDataSource, UITableView
         activityIndicator.startAnimating()
         home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
         navigationItem.rightBarButtonItem = home
+        sideBarButton.target = revealViewController()
+        sideBarButton.action = Selector("revealToggle:")
         // Do any additional setup after loading the view, typically from a nib.
         sendrequesttoserver();
         self.view.userInteractionEnabled = true

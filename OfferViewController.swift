@@ -21,6 +21,9 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
     var password1 = ""
     var cartcountnumber = 0
 
+    @IBOutlet weak var sidebarButton: UIBarButtonItem!
+    
+    
     @IBOutlet weak var tableView: UITableView!
     var home: UIBarButtonItem!
     
@@ -50,6 +53,15 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
         home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
         navigationItem.rightBarButtonItem = home
      self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
+        
+        // Change button color
+        
+        
+        // Set the side bar button action. When it's tapped, it'll show up the sidebar.
+        sidebarButton.target = revealViewController()
+        sidebarButton.action = Selector("revealToggle:")
+        
+        
         Reachability().checkconnection()
      sendrequesttoserverToGetOffer()
 

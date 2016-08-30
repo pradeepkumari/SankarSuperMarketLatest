@@ -53,6 +53,7 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
     var discountamount: Double = 0.0
     var subTotal: Double!
     
+    var couponDiscountAmount: Double!
     
     @IBOutlet weak var namelbl: UILabel!
     @IBOutlet weak var address1lbl: UILabel!
@@ -447,7 +448,7 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
     }
 
     @IBAction func ApplyBtn(sender: AnyObject) {
-        let applyCoupon = ApplyCouponModel.init(ID: Int(userid)! , OfferCouponCode: codetextfield.text!)!
+        let applyCoupon = ApplyCouponModel.init(ID: Int(self.cartid)! , OfferCouponCode: codetextfield.text!)!
         
         let serializedjson  = JSONSerializer.toJson(applyCoupon)
         
@@ -511,11 +512,23 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
     }
     func handleResponse(response: NSString)
     {
-        if response == "Offer expired"
+        if response == "null"
         {
             dispatch_async(dispatch_get_main_queue())
                 {
-                    self.presentViewController(Alert().alert("", message: "Offer Expired"),animated: true,completion: nil)
+                    
+                    self.presentViewController(Alert().alert("", message: "Coupon Applied Sucessfully"),animated: true,completion: nil)
+                    
+            }
+            
+            self.sendrequesttoserverforCouponDiscountValue()
+        }
+        
+        else if response == "Offer expired"
+        {
+            dispatch_async(dispatch_get_main_queue())
+            {
+                self.presentViewController(Alert().alert("", message: "Offer Expired"),animated: true,completion: nil)
             }
         }
         else if response == "Coupon code not found"
@@ -530,12 +543,54 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
         {
             dispatch_async(dispatch_get_main_queue())
                 {
-                    self.presentViewController(Alert().alert("", message: "Coupon Applied Sucessfully"),animated: true,completion: nil)
+                    self.presentViewController(Alert().alert("", message: "Invalid Coupon Code"),animated: true,completion: nil)
             }
         }
         
     }
+    func sendrequesttoserverforCouponDiscountValue()
+    {
+        let username = self.username1
+        let password = self.password1
+        let loginString = NSString(format: "%@:%@", username, password)
+        let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
+        let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
+        
+        
+        let request = NSMutableURLRequest(URL: NSURL(string: Appconstant.WEB_API+Appconstant.GET_CART_OPEN+self.userid)!)
+        request.HTTPMethod = "GET"
+        // set Content-Type in HTTP header
+        
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(base64LoginString, forHTTPHeaderField: "Authorization")
+        request.addValue(Appconstant.TENANT, forHTTPHeaderField: "TENANT")
 
+        let task = NSURLSession.sharedSession().dataTaskWithRequest(request)
+            { data, response, error in
+                guard error == nil && data != nil else {                                                                              print("ERROR")
+                    print("response = \(response)")
+                    return
+                }
+                
+                if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {           // check for http errors
+                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                    print("response = \(response)")
+                }
+            
+                
+                let json = JSON(data: data!)
+                let item = json["result"]
+                    print("item==>>",String(item))
+                    self.couponDiscountAmount = item["coupondiscount"].doubleValue
+                    self.TotalDiscount.text = (String)(self.discountamount + (item["coupondiscount"].doubleValue))
+                    self.finalamount = item["GrandTotal"].doubleValue
+                    self.Amount.text = "\(self.finalamount)"
+                
+                }
+        
+              task.resume()
+        }
     
-    
+   
 }

@@ -20,6 +20,7 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
     var password1 = ""
     var cartcountnumber = 0
     
+    @IBOutlet weak var sideBarButton: UIBarButtonItem!
     @IBOutlet weak var tableView: UITableView!
     
     @IBOutlet weak var cartbtn: UIButton!
@@ -45,6 +46,9 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
 
         home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
         navigationItem.rightBarButtonItem = home
+        sideBarButton.target = revealViewController()
+        sideBarButton.action = Selector("revealToggle:")
+        
         Reachability().checkconnection()
         getuserdetails()
        }

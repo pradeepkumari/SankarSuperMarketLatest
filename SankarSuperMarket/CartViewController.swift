@@ -35,6 +35,8 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
     var username1 = ""
     var password1 = ""
 
+    @IBOutlet weak var sideBarButton: UIBarButtonItem!
+    
     @IBOutlet weak var tableView: UITableView!
  
     @IBOutlet weak var toplabel: UILabel!
@@ -58,7 +60,8 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
         self.tableView.delegate = self
         home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
         navigationItem.rightBarButtonItem = home
-
+        sideBarButton.target = revealViewController()
+        sideBarButton.action = Selector("revealToggle:")
         
         
     }

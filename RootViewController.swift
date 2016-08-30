@@ -18,9 +18,9 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        items = ["Gallery","Notification","Wish List","My Cart","offer","location","shareapp","FAQ","About Us","My Account","Logout"]
+        items = ["Home","Gallery","Notification","Wish List","My Cart","offer","location","shareapp","FAQ","About Us","My Account","Logout"]
         
-        self.navigationController?.navigationBarHidden = true
+        self.navigationController?.navigationBarHidden = false
         
         let backgroundImage = UIImageView(frame: CGRectMake(0, 0, 320, 800))
 
@@ -55,7 +55,13 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        if(indexPath.row == 6){
+//        if(indexPath.row == 4)
+//        {
+//           let offerVC = OfferViewController()
+//           self.navigationController?.pushViewController(offerVC, animated:true)
+//        }
+        
+        if(indexPath.row == 7){
             
             let textToShare = "Check out this website about it!"
             
@@ -74,7 +80,7 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
 
         }
         
-        else if(indexPath.row == 10) {
+        else if(indexPath.row == 11) {
             let alert = UIAlertController(title: "Are you sure want to logout", message: "", preferredStyle: UIAlertControllerStyle.Alert)
             alert.addAction(UIAlertAction(title: "Yes", style: UIAlertActionStyle.Default, handler: { alertAction in
                 
