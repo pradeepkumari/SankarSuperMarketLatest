@@ -412,6 +412,8 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
                     self.total = self.total + (Double(self.cartprice[i])! * Double(self.steppervalue[i]))
                     self.Totalquantity = self.Totalquantity + self.steppervalue[i]
                 }
+                  
+                    print("self.total==>>", (self.total))
                 self.TotalAmount.text = "\(self.total)"
                 self.finalamount = Double(self.total) - self.discountamount
                 self.TotalQuantity.text = "\(self.Totalquantity)"
@@ -584,7 +586,8 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
                     print("item==>>",String(item))
                     self.couponDiscountAmount = item["coupondiscount"].doubleValue
                     self.TotalDiscount.text = (String)(self.discountamount + (item["coupondiscount"].doubleValue))
-                    self.finalamount = item["GrandTotal"].doubleValue
+                    self.TotalDiscount.text = "\(self.couponDiscountAmount)"
+                    self.finalamount = (self.total - (item["coupondiscount"].doubleValue))
                     self.Amount.text = "\(self.finalamount)"
                 
                 }

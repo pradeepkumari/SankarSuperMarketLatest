@@ -128,7 +128,7 @@ class ProductdescriptionViewController: UIViewController {
                 else{
                 
                 let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
-                print("responseString = \(responseString)")
+                print("responseString_Product ==> \(responseString)")
     
            
                 self.presentViewController(Alert().alert("", message: "Item added to cart successfully"),animated: true,completion: nil)

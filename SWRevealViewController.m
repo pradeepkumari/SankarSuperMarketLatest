@@ -1068,6 +1068,8 @@ const int FrontViewPositionNone = 0xff;
     
     *progress = *xLocation*symetry/xWidth;
     *overProgress = (*xLocation*symetry-xWidth)/xOverWidth;
+    NSLog(@"progress==>>%f",progress);
+    NSLog(@"Overprogress==>>%2f",overProgress);
 }
 
 

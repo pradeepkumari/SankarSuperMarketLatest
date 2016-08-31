@@ -100,21 +100,9 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
         getuserdetails()
         
         
-        
-        
-
-        //        let array = defaults.objectForKey("SavedArray") as? [String] ?? [String]()
 
             self.sendrequesttoserveragain()
             self.sendrequesttoserver()
-        
-        
-      
-        
-//        tableView.tableHeaderView = topview
-
-        
-        
         
 
     }
@@ -138,15 +126,14 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
         navigationItem.hidesBackButton = true
         search = UIBarButtonItem(image: UIImage(named: "search.png"), style: .Plain, target: self, action: Selector("searchaction"))
         
-        self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
+//        self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
         navigationItem.rightBarButtonItem = search
+        
         cartcountnumber = 0
         Getcartcount()
         
-        
-        
         self.view.userInteractionEnabled = false
-        
+
         self.view.userInteractionEnabled = true
     }
     
@@ -173,26 +160,84 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
         self.view.addGestureRecognizer(swipeLeft)
 
     }
-
+    
+    
     func respondToSwipeGesture(gesture: UIGestureRecognizer) {
-        
         if let swipeGesture = gesture as? UISwipeGestureRecognizer {
-            
             
             switch swipeGesture.direction {
             case UISwipeGestureRecognizerDirection.Right:
-//                self.pageController.currentPage -= 1
-                count = count - 1
-                ChangeImageAction()
+                ChangeImageAction(true)
             case UISwipeGestureRecognizerDirection.Left:
-//                count = count + 1
-//                self.pageController.currentPage += 1
-                ChangeImageAction()
+                ChangeImageAction(false)
             default:
                 break
             }
         }
     }
+    
+    
+    func ChangeImageAction(let moveLeft:Bool) {
+        if moveLeft
+        {
+            count -= 1
+        }
+        else
+        {
+            count += 1
+        }
+        
+        if count < 0
+        {
+            count = no_of_items
+            self.pageController.currentPage = no_of_items
+        }
+       
+        if count > no_of_items
+        {
+//            count = no_of_items
+            count = 0
+            self.pageController.currentPage = 0
+        }
+        
+        
+        self.pageController.currentPage = count
+        
+        let notification = notificationItems[count]
+        noticeimg.image = notification.NotificationPhoto
+        
+    }
+    
+    
+    
+    
+    
+    
+
+//    func respondToSwipeGesture(gesture: UIGestureRecognizer) {
+//        
+//        if let swipeGesture = gesture as? UISwipeGestureRecognizer {
+//            
+//            
+//            switch swipeGesture.direction {
+//            case UISwipeGestureRecognizerDirection.Right:
+////
+//                count = count - 1
+//                print("count==>>",count)
+////                self.pageController.currentPage -= 1
+////                ChangeImageAction()
+//                ChangeImageActionForRightSwipe()
+//            case UISwipeGestureRecognizerDirection.Left:
+//                
+////                count = count + 1
+//                print("count==>>",count)
+////                self.pageController.currentPage += 1
+//                ChangeImageAction()
+//            default:
+//                break
+//            }
+//        }
+//    }
     
     func GotoCartView(){
         self.performSegueWithIdentifier("fromhome_tocart", sender: self)
@@ -429,8 +474,14 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
         task.resume()
         
     }
+    
+    
+   
+    
+    
 
     func ChangeImageAction() {
+        print("cou==>>",count)
         if (no_of_items >= count) {
             if (count < 0) {
                 count = 0
@@ -449,6 +500,39 @@ class HomeViewController: UIViewController,  UITableViewDataSource, UITableViewD
                 self.pageController.currentPage = 0
             }
      }
+    
+    func ChangeImageActionForRightSwipe() {
+        
+        if (no_of_items >= count) {
+            if (count < 0) {
+                count = 0
+                self.pageController.currentPage = 0
+            }
+            print("couright==>>",count)
+            let notification = notificationItems[count]
+            
+            noticeimg.image = notification.NotificationPhoto
+            
+            
+            count = count - 1
+            if count != -1
+            {
+            self.pageController.currentPage -= 1
+            }
+            else
+            {
+               self.pageController.currentPage = no_of_items
+                count = no_of_items
+            }
+        }
+//        if (count == -1) {
+//            print("reached end")
+//            count = 4
+//            self.pageController.currentPage = 4
+//        }
+    }
+    
+    
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if(segue.identifier == "goto_productlist") {
                 let nextview = segue.destinationViewController as! ProductViewController

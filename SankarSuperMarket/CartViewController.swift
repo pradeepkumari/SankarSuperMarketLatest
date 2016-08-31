@@ -356,17 +356,18 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     self.steppervalue.append(item2["Quantity"].intValue)
                     self.disprice.append(item2["DiscountedPrice"].doubleValue)
                     self.total = self.total + (Double(self.cprice[self.rowcount])! * Double(self.steppervalue[self.rowcount]))
-                    print(self.cprice[self.rowcount])
-                    print(self.steppervalue[self.rowcount])
-                    print(self.total)
-                    self.rowcount = self.rowcount + 1
                     
+                    print("cprice==>>",self.cprice[self.rowcount])
+                    print("stepperval==>>",self.steppervalue[self.rowcount])
+                    print("total==>>",self.total)
+                    self.rowcount = self.rowcount + 1
+                    print ("Quantity Count==>>",self.rowcount)
 
                 }
     
                dispatch_async(dispatch_get_main_queue()) {
             self.totallbl.text = " " + "  " + "Total \u{20B9}\(self.total)"
-                
+//             self.totallbl.text = String(item["TotalPrice"].doubleValue)
             self.tableView.reloadData()
         }
          
