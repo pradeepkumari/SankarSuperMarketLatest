@@ -409,6 +409,7 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
                 self.Totalquantity = 0
                 self.total = 0.0
                 for(var i = 0; i<self.steppervalue.count; i++) {
+                    
                     self.total = self.total + (Double(self.cartprice[i])! * Double(self.steppervalue[i]))
                     self.Totalquantity = self.Totalquantity + self.steppervalue[i]
                 }
