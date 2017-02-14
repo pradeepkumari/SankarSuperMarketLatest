@@ -38,8 +38,17 @@ class SignupViewController: UIViewController,UITextFieldDelegate {
         super.viewDidLoad()
         let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
         view.addGestureRecognizer(tap)
-        signup.layer.cornerRadius = 5
-        cancel.layer.cornerRadius = 5
+        self.view.backgroundColor = UIColor.whiteColor()
+        signup.layer.cornerRadius = 20
+        signup.backgroundColor = UIColor(red: 104.0/255.0, green: 191.0/255.0, blue: 74.0/255.0, alpha:1.0)
+        self.signup.layer.shadowOpacity = 2
+        self.signup.layer.shadowRadius = 5
+        self.signup.layer.shadowOffset = CGSize(width: 1, height: 1)
+        self.signup.layer.shadowColor = UIColor(red: 175.0/255.0, green: 213.0/255.0, blue: 159.0/255.0, alpha:1.0).CGColor
+        
+        navigationController?.navigationBar.hidden = true
+        
+        
         txtmobileno.delegate = self
         txtmobileno.keyboardType = UIKeyboardType.NumberPad
         
@@ -72,13 +81,39 @@ class SignupViewController: UIViewController,UITextFieldDelegate {
         else {
 //            DatabaseCallforCartItems()
 //            deleteCartdatabase()
-            Reachability().checkconnection()
+            checkconnection()
         let signupViewmodel = Signupviewmodel.init(Name: self.txtname.text!, EmailID: self.txtemail.text!, PhoneNumber: self.txtmobileno.text!, Password: self.txtpwd.text!)!
         let serializedjson  = JSONSerializer.toJson(signupViewmodel)
             print(serializedjson)
         sendrequesttoserver(Appconstant.WEB_API+Appconstant.SIGNUP_URL, value: serializedjson)
         }
     }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     
     func sendrequesttoserver(url : String,value : String)
     {

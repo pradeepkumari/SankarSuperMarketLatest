@@ -39,8 +39,7 @@ class PersonaldetailViewController: UIViewController, UIImagePickerControllerDel
         getdetails()
         self.profileimg.layer.cornerRadius = self.profileimg.frame.size.height/2
         self.profileimg.clipsToBounds = true
-        savebtn.layer.cornerRadius = 5
-        cancelbtn.layer.cornerRadius = 5
+        
         
         imagePicker.delegate = self
         nametxt.layer.borderColor = UIColor.blackColor().CGColor
@@ -53,9 +52,28 @@ class PersonaldetailViewController: UIViewController, UIImagePickerControllerDel
         savebtn.hidden = true
         cancelbtn.hidden = true
         // Do any additional setup after loading the view, typically from a nib.
-        
+        savebtn.layer.cornerRadius = 15
+        cancelbtn.layer.cornerRadius = 15
         let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
         view.addGestureRecognizer(tap)
+        
+        
+        let bottomLine = CALayer()
+        bottomLine.frame = CGRectMake(0.0, nametxt.frame.height - 1, nametxt.frame.width, 1.0)
+        bottomLine.backgroundColor = UIColor.grayColor().CGColor
+        let bottomLine1 = CALayer()
+        bottomLine1.frame = CGRectMake(0.0, mobilenotxt.frame.height - 1, mobilenotxt.frame.width, 1.0)
+        bottomLine1.backgroundColor = UIColor.grayColor().CGColor
+        let bottomLine2 = CALayer()
+        bottomLine2.frame = CGRectMake(0.0, emailtxt.frame.height - 1, emailtxt.frame.width, 1.0)
+        bottomLine2.backgroundColor = UIColor.grayColor().CGColor
+        nametxt.borderStyle = UITextBorderStyle.None
+        nametxt.layer.addSublayer(bottomLine)
+        mobilenotxt.borderStyle = UITextBorderStyle.None
+        mobilenotxt.layer.addSublayer(bottomLine1)
+        emailtxt.borderStyle = UITextBorderStyle.None
+        emailtxt.layer.addSublayer(bottomLine2)
+   
         
     }
     
@@ -65,7 +83,11 @@ class PersonaldetailViewController: UIViewController, UIImagePickerControllerDel
         if(imagepath.isEmpty){
         }
         else {
-            let profileimag =  UIImage(data: NSData(contentsOfURL: NSURL(string:self.imagepath)!)!)
+//            let profileimag =  UIImage(data: NSData(contentsOfURL: NSURL(string:self.imagepath)!)!)
+            var profileimag: UIImage? = UIImage(contentsOfFile: self.imagepath)
+            if profileimag == nil {
+                profileimag = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+            }
             profileimg.image = profileimag
             self.profileimg.layer.cornerRadius = 10
             self.profileimg.layer.cornerRadius = self.profileimg.frame.size.height/2
@@ -112,13 +134,39 @@ class PersonaldetailViewController: UIViewController, UIImagePickerControllerDel
 //        print(serializedjson)
 //        getProfileImage(Appconstant.WEB_API+Appconstant.AUTHENTICATE_URL, value: serializedjson)
     }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     
     @IBAction func savebtnAction(sender: AnyObject) {
         nametxt.text = self.nametxt.text!
         nametxt.userInteractionEnabled = false
         savebtn.hidden = true
         cancelbtn.hidden = true
-        Reachability().checkconnection()
+       checkconnection()
         let UserViewmodel = UserViewModel.init(ID: userid, Name: self.nametxt.text!)!
         let serializedjson  = JSONSerializer.toJson(UserViewmodel)
         sendrequesttoserver(Appconstant.WEB_API+Appconstant.UPDATE_PROFILE, value: serializedjson)
@@ -176,7 +224,7 @@ class PersonaldetailViewController: UIViewController, UIImagePickerControllerDel
                 let supermarketDB = FMDatabase(path: databasePath as String)
                 if supermarketDB.open() {
                     
-                    let insertSQL = "UPDATE LOGIN SET NAME = '\(self.nametxt.text!)' WHERE USERID=" + "\(item["ID"].intValue)"
+                    let insertSQL = "UPDATE LOGIN SET NAME = '"+self.nametxt.text!+"' WHERE USERID=" + "\(item["ID"].intValue)"
                     
                     let result = supermarketDB.executeUpdate(insertSQL,
                         withArgumentsInArray: nil)
@@ -185,7 +233,9 @@ class PersonaldetailViewController: UIViewController, UIImagePickerControllerDel
                         print("Error: \(supermarketDB.lastErrorMessage())")
                     }
                 }
-                
+                 dispatch_async(dispatch_get_main_queue()) {
+                self.presentViewController(Alert().alert("Name changed", message: ""),animated: true,completion: nil)
+                }
         }
  
         
@@ -218,7 +268,7 @@ class PersonaldetailViewController: UIViewController, UIImagePickerControllerDel
         
         
         let action2 = UIAlertAction(title: "Remove Photo", style: UIAlertActionStyle.Default, handler: {[weak self](paramAction:UIAlertAction!) in
-           Reachability().checkconnection()
+           self!.checkconnection()
             self!.profileimg.image = UIImage(named: "threadimg.png")
             let base64String1: String = ""
             
@@ -264,16 +314,15 @@ class PersonaldetailViewController: UIViewController, UIImagePickerControllerDel
             profileimg.contentMode = .ScaleAspectFit
             profileimg.image = pickedImage
             self.profileimg.layer.cornerRadius = 10
-//            self.profileimg.layer.cornerRadius = self.profileimg.frame.size.height/2
-//            self.profileimg.clipsToBounds = true
             let image : UIImage = pickedImage
             let imageData = UIImagePNGRepresentation(image)
-            let base64String: String = imageData!.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0))
-            Reachability().checkconnection()
+           // let base64String: String = imageData!.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0))
+            let base64String:String = imageData!.base64EncodedStringWithOptions(.Encoding64CharacterLineLength)
+            checkconnection()
             activityIndicator.startAnimating()
             let imagemodel = ImageViewModel.init(ID: userid, Image: base64String)!
             let serializedjson  = JSONSerializer.toJson(imagemodel)
-
+            print(serializedjson)
             sendrequesttoserverforProfileImage(Appconstant.WEB_API+Appconstant.UPDATE_PROFILE, value: serializedjson)
             
         }
@@ -340,15 +389,22 @@ class PersonaldetailViewController: UIViewController, UIImagePickerControllerDel
                     }
                     else {
 
-            let profileimag =  UIImage(data: NSData(contentsOfURL: NSURL(string:self.imagepath)!)!)
+//            let profileimag =  UIImage(data: NSData(contentsOfURL: NSURL(string:self.imagepath)!)!)
+                        var profileimag: UIImage? = UIImage(contentsOfFile: self.imagepath)
+                        if profileimag == nil {
+                            profileimag = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+                        }
+
                     print(self.imagepath)
-                        self.activityIndicator.stopAnimating()
+                        
                 self.profileimg.image = profileimag
 //                    self.profileimg.layer.cornerRadius = 5
                     
                         
                     }
+         
                 }
+                self.activityIndicator.stopAnimating()
         }
         
         

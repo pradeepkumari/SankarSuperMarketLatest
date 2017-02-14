@@ -27,7 +27,7 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
     var steppervalue = [Int]()
     var discountPrice = [String]()
     var correctdiscount = 0.0
-    
+    var responsestr = ""
     
     var name = ""
     var address1 = ""
@@ -87,6 +87,7 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
 
     @IBOutlet weak var view1: UIView!
     
+    @IBOutlet weak var cashview: UIView!
     @IBOutlet weak var orderbtn: UIButton!
     @IBOutlet weak var SegmentedController: UISegmentedControl!
 
@@ -94,7 +95,7 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         getuserdetails()
-        orderbtn.layer.cornerRadius = 5
+        orderbtn.layer.cornerRadius = 20
         codetextfield.hidden = true
         applybtn.hidden = true
         applybtn.layer.cornerRadius = 5
@@ -115,12 +116,37 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
         pincodelbl.text = "Pincode - " + "\(pincode)"
         mobilelbl.text = "Mobile No.: " + "\(mobileno)"
         Totalquantity = 0
-        Reachability().checkconnection()
+        checkconnection()
         sendrequesttoserverforCartid()
         sendrequesttoserverforCartItems()
         
     }
-    
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     func getuserdetails(){
         DBHelper().opensupermarketDB()
         let databaseURL = NSURL(fileURLWithPath:NSTemporaryDirectory()).URLByAppendingPathComponent("supermarket.db")
@@ -160,14 +186,16 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
     @IBAction func indexBtn(sender: AnyObject) {
         switch SegmentedController.selectedSegmentIndex {
         case 0:
+            self.cashview.hidden = false
             self.addrView.hidden = true
             self.tableView.hidden = true
         case 1:
-            
+            self.cashview.hidden = true
             self.tableView.hidden = false
             self.addrView.hidden = true
 
         case 2:
+            self.cashview.hidden = true
             self.addrView.hidden = false
             self.tableView.hidden = true
 
@@ -188,16 +216,25 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
         let subtotal = cell.viewWithTag(6) as! UILabel
         
         let productimgpath = Appconstant.IMAGEURL+"Images/Products/"+cartimgurl[indexPath.row];
-        let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
-        productimg.image = productimages
+//        let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
+        if let data = NSData(contentsOfURL: NSURL(string:productimgpath)!){
+            let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
+            productimg.image = productimages
+        }
+        else{
+            let productimages = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+            productimg.image = productimages
+        }
+
         namelbl.text = cartname[indexPath.row]
         quantitylbl.text = cartquantity[indexPath.row]
-        pricelbl.text = "\(cartDisprice[indexPath.row])"
+        pricelbl.text = "\u{20B9}" + "\(cartDisprice[indexPath.row])"
         productquantity.text = "Qty: " + "\(steppervalue[indexPath.row])"
         
         subTotal = cartDisprice[indexPath.row] * Double(steppervalue[indexPath.row])
         subtotal.text = "SubTotal: " + "\(subTotal)"
-        
+        cell.layer.borderWidth = 1
+        cell.layer.borderColor = Appconstant.bgcolor.CGColor
         return cell
     }
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -214,7 +251,8 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
 
     
     @IBAction func OrderButtonAction(sender: AnyObject) {
-        Reachability().checkconnection()
+        checkconnection()
+        
         
         let citymodel = CityModel.init(Name: city)!
         let statemodel = StateModel.init(Name: state)!
@@ -238,7 +276,23 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
         let serializedjson  = JSONSerializer.toJson(orderviewmodel)
         
         print(serializedjson)
-        sendrequesttoserverPlaceOrder(Appconstant.WEB_API+Appconstant.PLACE_ORDER, value: serializedjson)
+        var alertController:UIAlertController?
+        alertController = UIAlertController(title: "Are you sure want to place order?",
+            message: "",
+            preferredStyle: .Alert)
+        
+        let action = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+            self.sendrequesttoserverPlaceOrder(Appconstant.WEB_API+Appconstant.PLACE_ORDER, value: serializedjson)
+        }
+        let action1 = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+            
+        }
+        alertController?.addAction(action)
+        alertController?.addAction(action1)
+        self.presentViewController(alertController!,
+            animated: true,
+            completion: nil)
+        
         
     }
     
@@ -281,12 +335,29 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
 //                    let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
 //                    print("responseString = \(responseString)")
 //                    
+//                    
 //                }
 //                
-                self.presentViewController(Alert().alert("Message", message: "Order Placed Successfully"),animated: true,completion: nil)
-                
 //        }
-//        
+        
+        dispatch_async(dispatch_get_main_queue()) {
+
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "Order Placed Successfully",
+                message: "",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                 self.performSegueWithIdentifier("gohome_fromcartconfirm", sender: self)
+            }
+            alertController?.addAction(action)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+
+//
 //        task.resume()
     }
     
@@ -377,6 +448,8 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
                 }
                 //    let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
                 //     print("responseString = \(responseString)")
+                self.Totalquantity = 0
+                self.total = 0.0
                 var i = 0
                 let json = JSON(data: data!)
                 var item = json["result"]
@@ -396,8 +469,10 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
                     self.discountPrice.append(productvariant["DiscountPrice"].stringValue)
                     self.steppervalue.append(item2["Quantity"].intValue)
                     print(self.steppervalue)
-                    self.correctdiscount = self.correctdiscount + ((productvariant["Price"].doubleValue / 100 ) * productvariant["DiscountPercentage"].doubleValue)
-                    self.discountamount = self.discountamount + (((productvariant["Price"].doubleValue / 100 ) * productvariant["DiscountPercentage"].doubleValue)) * Double(self.steppervalue[self.rowcount])
+                    self.total = self.total + (Double(productvariant["DiscountPrice"].stringValue)! * Double(self.steppervalue[self.rowcount]))
+                    self.Totalquantity = self.Totalquantity + self.steppervalue[self.rowcount]
+                    self.correctdiscount = self.correctdiscount + ((productvariant["DiscountPrice"].doubleValue / 100 ) * productvariant["DiscountPercentage"].doubleValue)
+                    self.discountamount = self.discountamount + (((productvariant["DiscountPrice"].doubleValue / 100 ) * productvariant["DiscountPercentage"].doubleValue)) * Double(self.steppervalue[self.rowcount])
                     self.rowcount = self.rowcount + 1
                     i = i + 1
                 }
@@ -406,15 +481,7 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
                     
                 
                 
-                self.Totalquantity = 0
-                self.total = 0.0
-                for(var i = 0; i<self.steppervalue.count; i++) {
-                    
-                    self.total = self.total + (Double(self.cartprice[i])! * Double(self.steppervalue[i]))
-                    self.Totalquantity = self.Totalquantity + self.steppervalue[i]
-                }
-                  
-                    print("self.total==>>", (self.total))
+                print("self.total==>>", (self.total))
                 self.TotalAmount.text = "\(self.total)"
                 self.finalamount = Double(self.total) - self.discountamount
                 self.TotalQuantity.text = "\(self.Totalquantity)"
@@ -458,12 +525,12 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
         print(serializedjson)
         print(Appconstant.WEB_API+Appconstant.APPLY_COUPON)
         
-        sendrequesttoserverAddcart(Appconstant.WEB_API+Appconstant.APPLY_COUPON, value: serializedjson)
+        sendrequesttoserverForCouponCode(Appconstant.WEB_API+Appconstant.APPLY_COUPON, value: serializedjson)
         
     }
     
     
-    func sendrequesttoserverAddcart(url : String,value : String)
+    func sendrequesttoserverForCouponCode(url : String,value : String)
     {
         let username = self.username1
         let password = self.password1
@@ -500,101 +567,84 @@ class ConfirmViewController: UIViewController, UITextFieldDelegate {
                     print((data))
                     print("responseString_coupon = \(responseString!)")
                     let json = JSON(data: data!)
+                    let item = json["result"]
+                    self.responsestr = json["exception"].stringValue
+                    if(json["exception"] == "null"){
+                        dispatch_async(dispatch_get_main_queue())
+                            {
+                                
+                                self.presentViewController(Alert().alert("Coupon Code applied successfully", message: ""),animated: true,completion: nil)
+                                self.TotalDiscount.text = item["coupondiscount"].stringValue
+                                self.Amount.text = item["GrandTotal"].stringValue
+                                self.finalamount = item["GrandTotal"].doubleValue
+                        }
+                    }
                     
-                    let item = json["exception"]
-                    print("json val==>>",String(item))
-                    self.handleResponse(String(item))
-                    //                    dispatch_async(dispatch_get_main_queue()) {
-                    //                        self.presentViewController(Alert().alert("", message: "Offer Expired"),animated: true,completion: nil)
-                    //                    }
+                    else{
+                        dispatch_async(dispatch_get_main_queue())
+                            {
+                                
+                                self.presentViewController(Alert().alert(self.responsestr, message: ""),animated: true,completion: nil)
+                        }
+                    }
+                    
+
                 }
         }
         
         task.resume()
         
     }
-    func handleResponse(response: NSString)
-    {
-        if response == "null"
-        {
-            dispatch_async(dispatch_get_main_queue())
-                {
-                    
-                    self.presentViewController(Alert().alert("", message: "Coupon Applied Sucessfully"),animated: true,completion: nil)
-                    
-            }
-            
-            self.sendrequesttoserverforCouponDiscountValue()
-        }
-        
-        else if response == "Offer expired"
-        {
-            dispatch_async(dispatch_get_main_queue())
-            {
-                self.presentViewController(Alert().alert("", message: "Offer Expired"),animated: true,completion: nil)
-            }
-        }
-        else if response == "Coupon code not found"
-        {
-            dispatch_async(dispatch_get_main_queue())
-                {
-                    self.presentViewController(Alert().alert("", message: "Coupon code not found"),animated: true,completion: nil)
-            }
-            
-        }
-        else
-        {
-            dispatch_async(dispatch_get_main_queue())
-                {
-                    self.presentViewController(Alert().alert("", message: "Invalid Coupon Code"),animated: true,completion: nil)
-            }
-        }
-        
-    }
-    func sendrequesttoserverforCouponDiscountValue()
-    {
-        let username = self.username1
-        let password = self.password1
-        let loginString = NSString(format: "%@:%@", username, password)
-        let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
-        let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
-        
-        
-        let request = NSMutableURLRequest(URL: NSURL(string: Appconstant.WEB_API+Appconstant.GET_CART_OPEN+self.userid)!)
-        request.HTTPMethod = "GET"
-        // set Content-Type in HTTP header
-        
-        
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(base64LoginString, forHTTPHeaderField: "Authorization")
-        request.addValue(Appconstant.TENANT, forHTTPHeaderField: "TENANT")
-
-        let task = NSURLSession.sharedSession().dataTaskWithRequest(request)
-            { data, response, error in
-                guard error == nil && data != nil else {                                                                              print("ERROR")
-                    print("response = \(response)")
-                    return
-                }
-                
-                if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {           // check for http errors
-                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
-                    print("response = \(response)")
-                }
-            
-                
-                let json = JSON(data: data!)
-                let item = json["result"]
-                    print("item==>>",String(item))
-                    self.couponDiscountAmount = item["coupondiscount"].doubleValue
-                    self.TotalDiscount.text = (String)(self.discountamount + (item["coupondiscount"].doubleValue))
-                    self.TotalDiscount.text = "\(self.couponDiscountAmount)"
-                    self.finalamount = (self.total - (item["coupondiscount"].doubleValue))
-                    self.Amount.text = "\(self.finalamount)"
-                
-                }
-        
-              task.resume()
-        }
-    
+ 
+//    func sendrequesttoserverforCouponDiscountValue()
+//    {
+//        let username = self.username1
+//        let password = self.password1
+//        let loginString = NSString(format: "%@:%@", username, password)
+//        let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
+//        let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
+//        
+//        
+//        let request = NSMutableURLRequest(URL: NSURL(string: Appconstant.WEB_API+Appconstant.GET_CART_OPEN+self.userid)!)
+//        request.HTTPMethod = "GET"
+//        // set Content-Type in HTTP header
+//        
+//        
+//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//        request.addValue(base64LoginString, forHTTPHeaderField: "Authorization")
+//        request.addValue(Appconstant.TENANT, forHTTPHeaderField: "TENANT")
+//
+//        let task = NSURLSession.sharedSession().dataTaskWithRequest(request)
+//            { data, response, error in
+//                guard error == nil && data != nil else {                                                                              print("ERROR")
+//                    print("response = \(response)")
+//                    return
+//                }
+//                
+//                if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {           // check for http errors
+//                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
+//                    print("response = \(response)")
+//                }
+//            
+//                
+//                let json = JSON(data: data!)
+//                let item = json["result"]
+//                    print("item==>>",String(item))
+//                    self.couponDiscountAmount = item["coupondiscount"].doubleValue
+//                    self.TotalDiscount.text = (String)(self.discountamount + (item["coupondiscount"].doubleValue))
+//                    self.TotalDiscount.text = "\(self.couponDiscountAmount)"
+//                    self.finalamount = (self.total - (item["coupondiscount"].doubleValue))
+//                    self.Amount.text = "\(self.finalamount)"
+//                
+//                }
+//        
+//              task.resume()
+//        }
+//    
    
 }
+
+
+
+
+

@@ -9,7 +9,7 @@
 import UIKit
 import SystemConfiguration
 
-public class Reachability {
+public class Reachability: UIViewController {
     class func isConnectedToNetwork() -> Bool {
         var zeroAddress = sockaddr_in()
         zeroAddress.sin_len = UInt8(sizeofValue(zeroAddress))
@@ -33,7 +33,22 @@ public class Reachability {
 //            print("Internet connection OK")
         } else {
             print("Internet connection FAILED")
-            ConnectionViewController().goto()
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
            
         }
     }

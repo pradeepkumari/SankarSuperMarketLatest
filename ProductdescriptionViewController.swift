@@ -22,7 +22,7 @@ class ProductdescriptionViewController: UIViewController {
     @IBOutlet weak var discount: UILabel!
     
     @IBOutlet weak var amount: UILabel!
-   
+ 
     @IBOutlet weak var cartbtn: UIButton!
     @IBOutlet weak var addtoCart: UIButton!
     @IBOutlet weak var quantity: UILabel!
@@ -43,6 +43,7 @@ class ProductdescriptionViewController: UIViewController {
     var username1 = ""
     var password1 = ""
     var cartcountnumber = 0
+    var productcartcount = 0
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -56,29 +57,62 @@ class ProductdescriptionViewController: UIViewController {
         cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
         cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
-        cartbtn.tintColor = UIColor.whiteColor()
-        cartbtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
         
+        addtoCart.layer.cornerRadius = 20
         cartbtn.userInteractionEnabled = true
         cartbtn.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(cartbtn)
-        
+        cartbtn.tintColor = UIColor.whiteColor()
+        cartbtn.backgroundColor = Appconstant.btngreencolor
+        cartbtn.titleLabel?.textColor = Appconstant.btngreencolor
         
         // Do any additional setup after loading the view, typically from a nib.
-        addtoCart.layer.cornerRadius = 5
+
+        addtoCart.backgroundColor = Appconstant.btngreencolor
         descriptionimg.image = self.productimage
         price.text = self.proprice
         discount.text = self.prodiscount + "%"
         amount.text = self.proamount
         quantity.text = self.protype
         self.navigationItem.title = self.productname
+        let backItem = UIBarButtonItem()
+        backItem.title = "Back"
+        self.navigationController?.navigationBar.topItem?.backBarButtonItem = backItem
     }
-    
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     
     @IBAction func AddToCartBtnAction(sender: AnyObject) {
-        Reachability().checkconnection()
+        checkconnection()
+        if(self.productcartcount == 0){
+            self.productcartcount += 1
         self.cartcountnumber += 1
         self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+        }
         let productmodel = Productvariant.init(ID: self.individuvalid, ProductID: self.productid, ProductName: self.productname, Stock: Int(self.proquantity)!, Description: self.protype, Unit: self.prounit, Quantity: Int(self.proquantity)!, Price: Float(self.proprice)!, DiscountPercentage: Float(self.prodiscount)!, DiscountPrice: Float(self.dis_price)!)!
         
         

@@ -27,7 +27,7 @@ class FAQViewController: UIViewController, UITableViewDataSource, UITableViewDel
         activityIndicator.startAnimating()
         self.tabBarController?.tabBar.hidden = true
         self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
-        Reachability().checkconnection()
+        checkconnection()
         home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
         navigationItem.rightBarButtonItem = home
         sideBarButton.target = revealViewController()
@@ -38,6 +38,32 @@ class FAQViewController: UIViewController, UITableViewDataSource, UITableViewDel
         self.tableView.rowHeight = UITableViewAutomaticDimension
         
     }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     func action(){
         self.performSegueWithIdentifier("go_home3", sender: self)
     }
@@ -83,8 +109,8 @@ class FAQViewController: UIViewController, UITableViewDataSource, UITableViewDel
 //            answerlbl.hidden = false
 //             self.tableView.rowHeight = UITableViewAutomaticDimension
 //        }
-        cell.layer.borderWidth = 0.5
-        cell.layer.borderColor = UIColor.grayColor().CGColor
+        cell.layer.borderWidth = 1
+        cell.layer.borderColor = Appconstant.bgcolor.CGColor
         activityIndicator.stopAnimating()
         return cell
     }
@@ -144,6 +170,7 @@ class FAQViewController: UIViewController, UITableViewDataSource, UITableViewDel
                 self.answer.append(item["Answer"].stringValue)
                 }
                 dispatch_async(dispatch_get_main_queue()) {
+                     self.activityIndicator.stopAnimating()
                     self.tableView.reloadData()
                 }
                

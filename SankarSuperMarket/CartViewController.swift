@@ -34,16 +34,18 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
     var btnvalue = 0
     var username1 = ""
     var password1 = ""
+    var wishlist = [Int]()
 
-    @IBOutlet weak var sideBarButton: UIBarButtonItem!
+   // @IBOutlet weak var sideBarButton: UIBarButtonItem!
     
+    @IBOutlet weak var sideBarButton: UIBarButtonItem!
     @IBOutlet weak var tableView: UITableView!
  
-    @IBOutlet weak var toplabel: UILabel!
+    //@IBOutlet weak var toplabel: UILabel!
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    @IBOutlet weak var navigationBar: UINavigationBar!
+   // @IBOutlet weak var navigationBar: UINavigationBar!
     
     @IBOutlet weak var totallbl: UILabel!
     var home: UIBarButtonItem!
@@ -62,14 +64,39 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
         navigationItem.rightBarButtonItem = home
         sideBarButton.target = revealViewController()
         sideBarButton.action = Selector("revealToggle:")
-        
+        self.checkoutbutton.userInteractionEnabled = false
         
     }
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        Reachability().checkconnection()
+        checkconnection()
         sendrequesttoserverforCartid()
         
+    }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+
     }
     func action(){
         self.performSegueWithIdentifier("gohome_fromcart", sender: self)
@@ -109,23 +136,34 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let quantitylbl = cartcell.viewWithTag(3) as! UILabel
         let pricelbl = cartcell.viewWithTag(4) as! UILabel
         let changevaluelbl = cartcell.viewWithTag(5) as! UILabel
-
-
+        let wishlbl = cartcell.viewWithTag(10) as! UILabel
         
+        if(self.wishlist[indexPath.row] == 0){
+            wishlbl.hidden = true
+        }
 
       //  checker[indexPath.row] = steppervalue[indexPath.row]
         print(indexPath.row)
         let productimgpath = Appconstant.IMAGEURL+"Images/Products/"+imgurl[indexPath.row];
-        let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
-        productimg.image = productimages
+//        let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
+        if let data = NSData(contentsOfURL: NSURL(string:productimgpath)!){
+            let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
+            productimg.image = productimages
+        }
+        else{
+           let productimages = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+            productimg.image = productimages
+        }
+
         changevaluelbl.text = "\(steppervalue[indexPath.row])"
         namelbl.text = cname[indexPath.row]
         quantitylbl.text = cquantity[indexPath.row]
         let no = Double(cprice[indexPath.row])!
         mulvalue = no * Double(steppervalue[indexPath.row])
+        print(cprice[indexPath.row])
         pricelbl.text = "\u{20B9}" + cprice[indexPath.row] + " " + "x" + " " + "\(steppervalue[indexPath.row])" +  " " + "=" + " " +  "\(mulvalue)"
-        cartcell.layer.borderWidth = 0.5
-        cartcell.layer.borderColor = UIColor.grayColor().CGColor
+        cartcell.layer.borderWidth = 1
+        cartcell.layer.borderColor = Appconstant.bgcolor.CGColor
         activityIndicator.stopAnimating()
         return cartcell
     }
@@ -181,7 +219,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {           // check for http errors
                     print("statusCode should be 200, but is \(httpStatus.statusCode)")
                     print("response = \(response)")
-                    Reachability().checkconnection()
+                    self.checkconnection()
                 }
                 
                 let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
@@ -192,7 +230,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
 
     
-    @IBAction func DeleteBtnAction(sender: AnyObject) {
+    @IBAction func  DeleteBtnAction(sender: AnyObject) {
         let point = sender.convertPoint(CGPointZero, toView: tableView)
         let indexPath = self.tableView.indexPathForRowAtPoint(point)!
         print(indexPath.row)
@@ -201,7 +239,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
             message: "",
             preferredStyle: .Alert)
         
-        let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+        let action = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
             
 
  
@@ -214,7 +252,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 self.clineid.removeAll()
                 self.rowcount = 0
                 self.total = 0
-                Reachability().checkconnection()
+               self.checkconnection()
                 self.sendrequesttoserverforCartid()
         }
         let action1 = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
@@ -266,8 +304,16 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
                      print("responseString = \(responseString)")
                 
                 
-        }
         
+        dispatch_async(dispatch_get_main_queue()) {
+            self.activityIndicator.startAnimating()
+
+            self.sendrequesttoserverforCartid()
+            self.activityIndicator.stopAnimating()
+
+        }
+
+        }
         
         
         task.resume()
@@ -300,7 +346,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
         let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
         let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
         
-        
+        print(self.userid)
         let request = NSMutableURLRequest(URL: NSURL(string: Appconstant.WEB_API+Appconstant.GET_CART_OPEN+self.userid)!)
         request.HTTPMethod = "GET"
         // set Content-Type in HTTP header
@@ -349,26 +395,31 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     self.cname.append(productvariant["ProductName"].stringValue)
                     self.mrp.append(productvariant["Price"].doubleValue)
                     self.cquantity.append(productvariant["Description"].stringValue)
-                    self.cprice.append(productvariant["DiscountPrice"].stringValue)
+                    self.cprice.append(String(productvariant["DiscountPrice"].doubleValue))
                     self.imgurl.append(item2["ImageName"].stringValue)
                     self.cproductid.append(productvariant["ProductID"].intValue)
                     self.cid.append(productvariant["ID"].intValue)
                     self.steppervalue.append(item2["Quantity"].intValue)
                     self.disprice.append(item2["DiscountedPrice"].doubleValue)
+                    self.wishlist.append(item2["WishlistID"].intValue)
                     self.total = self.total + (Double(self.cprice[self.rowcount])! * Double(self.steppervalue[self.rowcount]))
                     
-                    print("cprice==>>",self.cprice[self.rowcount])
-                    print("stepperval==>>",self.steppervalue[self.rowcount])
-                    print("total==>>",self.total)
                     self.rowcount = self.rowcount + 1
-                    print ("Quantity Count==>>",self.rowcount)
+                    
 
                 }
     
                dispatch_async(dispatch_get_main_queue()) {
             self.totallbl.text = " " + "  " + "Total \u{20B9}\(self.total)"
-//             self.totallbl.text = String(item["TotalPrice"].doubleValue)
-            self.tableView.reloadData()
+                if(self.rowcount == 0){
+                    self.checkoutbutton.userInteractionEnabled = false
+                    self.activityIndicator.stopAnimating()
+                    self.presentViewController(Alert().alert("No items found in cart", message: ""),animated: true,completion: nil)
+                }
+                else{
+                self.checkoutbutton.userInteractionEnabled = true
+                self.tableView.reloadData()
+                }
         }
          
                 
@@ -378,21 +429,11 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
     }
     
-//    func assignvalue(){
-//         self.totallbl.text = " " + "  " + "Total \u{20B9}\(self.total)"
-//        if(self.rowcount == 0) {
-//            
-//            totallbl.text = " " + "  " + "Total \u{20B9}\(0.0)"
-//        }
-//        else {
-//            self.totallbl.text = " " + "  " + "Total \u{20B9}\(self.total)"
-//        }
-//        
-//    }
+
     
     
     @IBAction func PlusBtnAction(sender: AnyObject) {
-        Reachability().checkconnection()
+        checkconnection()
         let point = sender.convertPoint(CGPointZero, toView: tableView)
         let indexPath = self.tableView.indexPathForRowAtPoint(point)!
         print(indexPath)
@@ -409,7 +450,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     @IBAction func MinusBtnAction(sender: AnyObject) {
-        Reachability().checkconnection()
+        checkconnection()
         let point = sender.convertPoint(CGPointZero, toView: tableView)
         let indexPath = self.tableView.indexPathForRowAtPoint(point)!
         print(indexPath)
@@ -431,7 +472,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 message: "",
                 preferredStyle: .Alert)
             
-            let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+            let action = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
                 
                 print(self.clineid[indexPath.row])
                 

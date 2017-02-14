@@ -22,10 +22,10 @@ import UIKit
 //}
 
 
-var latitude = [Double]()
-var longitude = [Double]()
-var addr1 = [String]()
-var addr2 = [String]()
+var latitude = 0.0
+var longitude = 0.0
+var addr1 = ""
+var addr2 = ""
 var addressline1 = ""
 var addressline2 = ""
 
@@ -44,11 +44,37 @@ class MapViewController: UIViewController {
         sideBarButton.target = revealViewController()
         sideBarButton.action = Selector("revealToggle:")
         getuserdetails()
-        Reachability().checkconnection()
+        checkconnection()
         sendrequesttoserverToGetLocation()
         
      
     }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     func getuserdetails(){
         DBHelper().opensupermarketDB()
         let databaseURL = NSURL(fileURLWithPath:NSTemporaryDirectory()).URLByAppendingPathComponent("supermarket.db")
@@ -94,12 +120,14 @@ class MapViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    
     @IBAction func BackBtn(sender: AnyObject) {
         self.performSegueWithIdentifier("goto_homeview", sender: self)
     }
 
     func sendrequesttoserverToGetLocation()
     {
+        checkconnection()
         let username = self.username1
         let password = self.password1
         let loginString = NSString(format: "%@:%@", username, password)
@@ -135,18 +163,17 @@ class MapViewController: UIViewController {
                 let json = JSON(data: data!)
                 for item1 in json["result"].arrayValue {
                     let address = item1["Address"]
-                    latitude.append(address["Latitude"].doubleValue)
-                    longitude.append(address["Longitude"].doubleValue)
-                    addr1.append(address["AddressLine1"].stringValue)
-                    addr2.append(address["AddressLine2"].stringValue)
+                    latitude = address["Latitude"].doubleValue
+                    longitude = address["Longitude"].doubleValue
+                    addr1 = address["AddressLine1"].stringValue
+                    addr2 = address["AddressLine2"].stringValue
                 }
-                print(latitude)
-                for(var i = 0; i<latitude.count; i++) {
-                let initialLocation = CLLocationCoordinate2D(latitude: latitude[i], longitude: longitude[i])
-                    addressline1 = addr1[i]
-                    addressline2 = addr2[i]
+                
+                let initialLocation = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+                    addressline1 = addr1
+                    addressline2 = addr2
                 self.centerMapOnLocation(initialLocation)
-                }
+                
          
         }
         task.resume()

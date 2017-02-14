@@ -23,6 +23,10 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
     var categoryID = ""
     var searchtext = ""
     
+
+
+    @IBOutlet var contentView: UIView!
+
     @IBOutlet weak var cartbtn: UIButton!
     var productid = [[Int]]()
     var individualproductid = [[Int]]()
@@ -70,12 +74,16 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
     var orderbycolumn = ""
     var orderbytype = ""
     var cartcountnumber = 0
+    var navigationtitle = ""
+    
+    var productsCount = 0
     var headerimage: UIImageView!
     
     @IBOutlet weak var tableView: UITableView!
 
     @IBOutlet weak var searchBar: UISearchBar!
  
+    @IBOutlet weak var smallactivityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 
     var search: UIBarButtonItem!
@@ -98,7 +106,8 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
     override func viewDidLoad() {
         super.viewDidLoad()
          getuserdetails()
-        self.cartbtn.frame = CGRectMake(self.view.frame.size.width-80, self.view.frame.size.height - 80, 45, 45)
+//        self.cartbtn.frame = CGRectMake(self.view.frame.size.width-80, self.view.frame.size.height - 80, 45, 45)
+        self.title = navigationtitle
         self.cartbtn.layer.cornerRadius = 23
         self.cartbtn.layer.shadowOpacity = 1
         self.cartbtn.layer.shadowRadius = 2
@@ -110,17 +119,20 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
         cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
         cartbtn.tintColor = UIColor.whiteColor()
-        cartbtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
+        cartbtn.backgroundColor = Appconstant.btngreencolor
+        cartbtn.titleLabel?.textColor = Appconstant.btngreencolor
+        self.cartbtn.frame = CGRectMake(self.view.frame.size.width-60, self.view.frame.size.height-60, 45, 45)
 
         cartbtn.userInteractionEnabled = true
         cartbtn.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(cartbtn)
+        self.view.backgroundColor = Appconstant.bgcolor
 
         headerimage = UIImageView(image: self.categoryimage)
         headerimage!.frame = CGRectMake(0,0,580,200)
         self.tableView.tableHeaderView = headerimage
-        
-        
+        self.navigationItem.title = self.navigationtitle
+    
         
         
         
@@ -132,12 +144,12 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         searchController.searchBar.hidden = true
         sort = UIBarButtonItem(image: UIImage(named: "sort.png"), style: .Plain, target: self, action: Selector("sortaction"))
         search = UIBarButtonItem(image: UIImage(named: "search.png"), style: .Plain, target: self, action: Selector("searchaction"))
-//        close = UIBarButtonItem(image: UIImage(named: "close.png"), style: .Plain, target: self, action: Selector("closeaction"))
+        close = UIBarButtonItem(image: UIImage(named: "close.png"), style: .Plain, target: self, action: Selector("searchaction"))
         navigationItem.rightBarButtonItems = [sort, search]
         self.view.userInteractionEnabled = false
         activityIndicator.startAnimating()
-        Reachability().checkconnection()
-        let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "", OrderByType: "", Productname: "", pageSize: 6, categoryID: Int(self.categoryID)!, pageNumber: pagenumber)!
+        checkconnection()
+        let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "", OrderByType: "", Productname: "", pageSize: 10, categoryID: Int(self.categoryID)!, pageNumber: pagenumber)!
         let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
         print(serializedjson)
         pagenumber++
@@ -154,8 +166,34 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
     }
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        
+//        self.cartbtn.frame = CGRectMake(self.view.frame.size.width-60, self.view.frame.size.height-60, 45, 45)
        
+    }
+
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
     }
 
     func filterContentForSearchText(searchText: String, scope: String = "All") {
@@ -169,6 +207,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         if (searchvalue == 0){
             searchBar.hidden = false
             searchActive = true
+            navigationItem.rightBarButtonItems = [sort, close]
          searchvalue = 1
 
         }
@@ -178,6 +217,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
             searchActive = false
             searchBar.hidden = true
             searchController.searchBar.hidden = true
+            navigationItem.rightBarButtonItems = [sort, search]
             self.tableView.reloadData()
         }
         
@@ -203,7 +243,8 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
             self.view.userInteractionEnabled = false
         }
         else {
-            self.view.userInteractionEnabled = true
+//            self.view.userInteractionEnabled = false
+            activityIndicator.startAnimating()
             self.searchtext = searchBar.text!
             let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "", OrderByType: "", Productname: searchBar.text!, pageSize: 50, categoryID: Int(self.categoryID)!, pageNumber: 0)!
             let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
@@ -231,7 +272,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
             self!.orderbytype = "asec"
             
 //            UIApplication.sharedApplication().beginIgnoringInteractionEvents()
-            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: self!.orderbycolumn, OrderByType: self!.orderbytype, Productname: "", pageSize: 6, categoryID: Int(self!.categoryID)!, pageNumber: self!.pagenumber)!
+            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: self!.orderbycolumn, OrderByType: self!.orderbytype, Productname: "", pageSize: 10, categoryID: Int(self!.categoryID)!, pageNumber: self!.pagenumber)!
                     let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
                     print(serializedjson)
 //                    self!.alert = 1
@@ -249,7 +290,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
             
 //            UIApplication.sharedApplication().beginIgnoringInteractionEvents()
             
-            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: self!.orderbycolumn, OrderByType: "desc", Productname: "", pageSize: 6, categoryID: Int(self!.categoryID)!, pageNumber: self!.pagenumber)!
+            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: self!.orderbycolumn, OrderByType: "desc", Productname: "", pageSize: 10, categoryID: Int(self!.categoryID)!, pageNumber: self!.pagenumber)!
             let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
             print(serializedjson)
             self!.pagenumber++
@@ -268,7 +309,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
             
 //            UIApplication.sharedApplication().beginIgnoringInteractionEvents()
             
-            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "price", OrderByType: "asec", Productname: "", pageSize: 6, categoryID: Int(self!.categoryID)!, pageNumber: self!.pagenumber)!
+            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "price", OrderByType: "asec", Productname: "", pageSize: 10, categoryID: Int(self!.categoryID)!, pageNumber: self!.pagenumber)!
             let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
             print(serializedjson)
            self!.pagenumber++
@@ -284,7 +325,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
             self!.orderbycolumn = "price"
             self!.orderbytype = "desc"
             
-            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "price", OrderByType: "desc", Productname: "", pageSize: 6, categoryID: Int(self!.categoryID)!, pageNumber: self!.pagenumber)!
+            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "price", OrderByType: "desc", Productname: "", pageSize: 10, categoryID: Int(self!.categoryID)!, pageNumber: self!.pagenumber)!
             let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
             print(serializedjson)
             self!.pagenumber++
@@ -309,17 +350,20 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
 
  
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-
+        
+ 
         
         let productcell = tableView.dequeueReusableCellWithIdentifier("P_Cell", forIndexPath: indexPath) as UITableViewCell!
         
         let productimg = productcell.viewWithTag(1) as! UIImageView
         let productlbl = productcell.viewWithTag(2) as! UILabel
+        let recurring = productcell.viewWithTag(3) as! UIButton
         let wishimg = productcell.viewWithTag(6) as! UIButton
         let pricelbl = productcell.viewWithTag(4) as! UILabel
         let cartcountlbl = productcell.viewWithTag(8) as! UILabel
         let btn = productcell.viewWithTag(12) as! UIButton
-        
+        let dropDownImage = productcell.viewWithTag(13) as! UIImageView
+        recurring.hidden = true
         if searchActive == true {
             print(indexPath.row)
              let lists = listItems[indexPath.row]
@@ -330,16 +374,40 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 wishimg.setBackgroundImage(UIImage(named: "fav_outline.png"), forState: UIControlState.Normal)
             }
             
+            
             productlbl.text = lists.Name
+            productlbl.textColor = UIColor.blackColor()
             productimg.image = lists.ProductPhoto
             pricelbl.text = "\u{20B9}" + lists.DiscountPrice
+            pricelbl.textColor = Appconstant.btngreencolor
             cartcountlbl.text = "\(lists.cartCount)"
+            cartcountlbl.font = UIFont(name: "Arial", size: 12)
             btn.setTitle(lists.Type, forState: UIControlState.Normal)
-            btn.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Left
-            btn.layer.cornerRadius = 3
-            productcell.layer.borderWidth = 0.5
-            productcell.layer.borderColor = UIColor.grayColor().CGColor
-            
+//            btn.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Left
+            if categoryproductItems1[indexPath.row].ProductvariantList.count<=1
+            {
+                print("prod.vari_Count==>>",categoryproductItems1[indexPath.row].ProductvariantList.count)
+                dropDownImage.hidden = true
+                btn.userInteractionEnabled = false
+                btn.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Left
+                btn.layer.borderColor = UIColor.clearColor().CGColor
+            }
+            else
+            {
+                btn.layer.borderColor = UIColor(red: 168.0/255.0, green: 168.0/255.0, blue: 168.0/255.0, alpha: 1.0).CGColor
+                btn.layer.borderWidth = 1.2
+                dropDownImage.hidden = false
+                btn.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Center
+                btn.userInteractionEnabled = true
+            }
+
+            btn.titleLabel?.textColor = UIColor.grayColor()
+            btn.layer.cornerRadius = 12
+            btn.backgroundColor = UIColor.clearColor()
+            productcell.layer.borderWidth = 1
+            productcell.layer.borderColor = Appconstant.bgcolor.CGColor
+            activityIndicator.stopAnimating()
+            self.view.userInteractionEnabled = true
             return productcell
         }
         print(indexPath.row)
@@ -351,26 +419,56 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         }
         btn.setTitle(producttype[indexPath.row][0], forState: UIControlState.Normal)
         btn.layer.cornerRadius = 3
-        btn.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Left
+        
+        
+        btn.titleLabel?.textColor = UIColor.grayColor()
+        btn.layer.cornerRadius = 12
+        btn.backgroundColor = UIColor.clearColor()
 
         let categoryproduct = categoryproductItems[indexPath.row]
+        
         productlbl.text = categoryproduct.Name
+        
+        productlbl.textColor = UIColor.blackColor()
+//        productlbl.font = UIFont(name: "Arial", size: 12)
         productimg.image = categoryproduct.ProductPhoto
         
-        pricelbl.text = "\u{20B9}" + self.productprice[indexPath.row][0]
+        pricelbl.text = "\u{20B9}" + self.productDiscountprice[indexPath.row][0]
+        pricelbl.textColor = Appconstant.btngreencolor
+//        pricelbl.font = UIFont(name: "Arial", size: 12)
         cartcountlbl.text = "\(self.productcartcount[indexPath.row][0])"
-            
+        cartcountlbl.font = UIFont(name: "Arial", size: 12)
         
-        productcell.layer.borderWidth = 0.5
-        productcell.layer.borderColor = UIColor.grayColor().CGColor
+        if categoryproductItems[indexPath.row].ProductvariantList.count<=1
+        {
+            print("prod.vari_Count==>>",categoryproductItems[indexPath.row].ProductvariantList.count)
+            dropDownImage.hidden = true
+            btn.userInteractionEnabled = false
+            btn.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Left
+            btn.layer.borderColor = UIColor.clearColor().CGColor
+        }
+        else
+        {
+            btn.layer.borderColor = UIColor(red: 168.0/255.0, green: 168.0/255.0, blue: 168.0/255.0, alpha: 1.0).CGColor
+            btn.layer.borderWidth = 1.2
+            dropDownImage.hidden = false
+            btn.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Center
+            btn.userInteractionEnabled = true
+        }
+        
+        productcell.layer.borderWidth = 1
+        productcell.layer.borderColor = Appconstant.bgcolor.CGColor
         
         if(pagesize == indexPath.row){
-            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: orderbycolumn, OrderByType: orderbytype, Productname: "", pageSize: 6, categoryID: Int(self.categoryID)!, pageNumber: pagenumber)!
+            smallactivityIndicator.startAnimating()
+            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: orderbycolumn, OrderByType: orderbytype, Productname: "", pageSize: 10, categoryID: Int(self.categoryID)!, pageNumber: pagenumber)!
             let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
             print(serializedjson)
             pagenumber++
             pagesize = pagesize + 6
+            activityIndicator.startAnimating()
             sendrequesttoserver(Appconstant.WEB_API+Appconstant.GET_PAGELIST, value: serializedjson);
+            activityIndicator.stopAnimating()
         }
         
         self.view.userInteractionEnabled = true
@@ -381,11 +479,20 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         activityIndicator.stopAnimating()
         self.view.userInteractionEnabled = true
         productcell.selectionStyle = UITableViewCellSelectionStyle.None
+//        
+//        if(indexPath.row == categoryproductItems.count-1){
+//            self.cartbtn.frame = CGRectMake(20, self.view.frame.size.height-60, 45, 45)
+//        }
+//        else{
+//            self.cartbtn.frame = CGRectMake(self.view.frame.size.width-60, self.view.frame.size.height-60, 45, 45)
+//        }
+
         return productcell
     }
     
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
         if searchActive == true {
             print(categoryproductItems1.count)
             return categoryproductItems1.count
@@ -402,7 +509,6 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         selectionColor.layer.borderColor = UIColor.clearColor().CGColor
         selectionColor.backgroundColor = UIColor.clearColor()
         cell.selectedBackgroundView = selectionColor
-//        cell.selectionStyle =
     }
 
 
@@ -467,7 +573,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 for product in  item["ProductVariantList"].arrayValue {
                        
                     let productvariantlist = ProductVariantList(ID: product["ID"].intValue, ProductID: product["ProductID"].intValue,  ProductName: product["ProductName"].stringValue,
-                            Price: product["Price"].stringValue, Stock: product["Stock"].stringValue, DiscountPercentage: product["DiscountPercentage"].stringValue, DiscountPrice: product["DiscountPrice"].stringValue, Unit: product["Unit"].stringValue, Type: product["Description"].stringValue,
+                            Price: String(product["Price"].doubleValue), Stock: product["Stock"].stringValue, DiscountPercentage: product["DiscountPercentage"].stringValue, DiscountPrice: String(product["DiscountPrice"].doubleValue), Unit: product["Unit"].stringValue, Type: product["Description"].stringValue,
                         Quantity: product["Quantity"].stringValue, UnitID: product["UnitID"].stringValue, cartCount: product["cartCount"].intValue)!
                         self.productvariantItems += [productvariantlist];
                    
@@ -478,30 +584,52 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                     self.name.append(product["ProductName"].stringValue)
                     self.type.append(product["Description"].stringValue)
                     self.stock.append(product["Stock"].stringValue)
-                    self.price.append(product["Price"].stringValue)
+                    self.price.append(String(product["Price"].doubleValue))
                     self.Discountpercent.append(product["DiscountPercentage"].stringValue)
-                    self.Discountprice.append(product["DiscountPrice"].stringValue)
+                    self.Discountprice.append(String(product["DiscountPrice"].doubleValue))
                     self.unit.append(product["Unit"].stringValue)
                     self.unitid.append(product["UnitID"].stringValue)
                     self.quantity.append(product["Quantity"].stringValue)
                     self.cartcount.append(product["cartCount"].intValue)
-
+                    
                     }
                     if(item["ImageUrl"].stringValue.isEmpty){
                         let defaultimg = UIImage(named: "loading_sqr.png")
 
                         let categoryproduct = CategoryProduct(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue,  ProductPhoto : defaultimg!, Productimgurl: item["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems)!
+                        print ("catt produc=>>",categoryproduct)
                         self.categoryproductItems += [categoryproduct];
                     }
                     else{
                     let categoryimgPath = Appconstant.IMAGEURL+"Images/Products/"+item["ImageUrl"].stringValue;
-                    let productimg =  UIImage(data: NSData(contentsOfURL: NSURL(string:categoryimgPath)!)!)
-                    print(productimg)
+                        
+//                    let productimg =  UIImage(data: NSData(contentsOfURL: NSURL(string:categoryimgPath)!)!)
+                        if let data = NSData(contentsOfURL: NSURL(string:categoryimgPath)!){
+                            let productimg =  UIImage(data: NSData(contentsOfURL: NSURL(string:categoryimgPath)!)!)
+                            let categoryproduct = CategoryProduct(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue,  ProductPhoto : productimg!, Productimgurl: item["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems)!
+                            self.categoryproductItems += [categoryproduct];
+                            self.productsCount = self.productsCount+1
+                        }
+                        else{
+                            let productimg = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+                            let categoryproduct = CategoryProduct(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue,  ProductPhoto : productimg!, Productimgurl: item["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems)!
+                            self.categoryproductItems += [categoryproduct];
+                            self.productsCount = self.productsCount+1
+                        }
+
+                        
+                        
+                        
+//                        catch {
+//                            let productimg1 = UIImage(named: "loading_sqr.png")
+//                            let categoryproduct = CategoryProduct(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue,  ProductPhoto : productimg1!, Productimgurl: item["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems)!
+//                            self.categoryproductItems += [categoryproduct];
+//                            self.productsCount = self.productsCount+1
+//                        }
                     
                     
                     
-                    let categoryproduct = CategoryProduct(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue,  ProductPhoto : productimg!, Productimgurl: item["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems)!
-                        self.categoryproductItems += [categoryproduct];
+                    
                     }
                     
                     self.individualproductid.append(self.id)
@@ -520,10 +648,18 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                     }
                 
                 dispatch_async(dispatch_get_main_queue()) {
+                    if self.categoryproductItems.count == 0 {
+                        self.activityIndicator.stopAnimating()
+                        self.presentViewController(Alert().alert("No products found", message: ""),animated: true,completion: nil)
+                    }
+                    else{
                     self.tableView.reloadData()
+                    self.smallactivityIndicator.stopAnimating()
+                    }
                 }
             }
         
+        print("Count_Products==>>",self.productsCount)
         
         
     task.resume()
@@ -549,6 +685,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 nextviewcontroller.individuvalid = self.listItems[(indexPath?.row)!].ProductVariantID
                 nextviewcontroller.productid = self.listItems[(indexPath?.row)!].ProductID
                 nextviewcontroller.dis_price = self.listItems[(indexPath?.row)!].DiscountPrice
+                nextviewcontroller.productcartcount = self.listItems[(indexPath?.row)!].cartCount
                 nextviewcontroller.cartid = self.cartid
                 nextviewcontroller.username1 = self.username1
                 nextviewcontroller.password1 = self.password1
@@ -567,6 +704,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
             nextviewcontroller.individuvalid = self.individualproductid[(indexPath?.row)!][0]
             nextviewcontroller.productid = self.productid[(indexPath?.row)!][0]
             nextviewcontroller.dis_price = self.productDiscountprice[(indexPath?.row)!][0]
+            nextviewcontroller.productcartcount = self.productcartcount[(indexPath?.row)!][0]
             nextviewcontroller.cartid = self.cartid
                 nextviewcontroller.username1 = self.username1
                 nextviewcontroller.password1 = self.password1
@@ -574,6 +712,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
             }
           
         }
+
     }
     
     
@@ -604,6 +743,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         }
         alertView.addButtonWithTitle("Create New Wishlist")
         alertView.addButtonWithTitle("Cancel")
+        
         alertView.show()
     }
     
@@ -611,7 +751,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         if(typealertno == 1){
             typealertno = 0
 
-             if searchActive == true {
+             if((searchActive == true) && (self.categoryproductItems1[alertindex].ProductvariantList.count != buttonIndex)) {
                 
                 listItems[alertindex].ProductVariantID = self.categoryproductItems1[alertindex].ProductvariantList[buttonIndex].ID
                 listItems[alertindex].ProductID = self.categoryproductItems1[alertindex].ProductvariantList[buttonIndex].ProductID
@@ -626,7 +766,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 listItems[alertindex].Quantity = self.categoryproductItems1[alertindex].ProductvariantList[buttonIndex].Quantity
                 listItems[alertindex].cartCount = self.categoryproductItems1[alertindex].ProductvariantList[buttonIndex].cartCount
             }
-             else{
+             else if(self.categoryproductItems[alertindex].ProductvariantList.count != buttonIndex){
             
             self.individualproductid[alertindex][0] = self.categoryproductItems[alertindex].ProductvariantList[buttonIndex].ID
             self.productid[alertindex][0] = self.categoryproductItems[alertindex].ProductvariantList[buttonIndex].ProductID
@@ -678,7 +818,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                             {(textField: UITextField!) in
                                 textField.placeholder = "Wishlist Name"
                         })
-            let action = UIAlertAction(title: "Ok",
+            let action = UIAlertAction(title: "OK",
                             style: UIAlertActionStyle.Default,
                             handler: {[weak self]
                                 (paramAction:UIAlertAction!) in
@@ -689,7 +829,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                                     let wishlistviewmodel = WishViewModel.init(UserID: self!.userid, Name: enteredText!)!
                                     let serializedjson  = JSONSerializer.toJson(wishlistviewmodel)
                                     print(serializedjson)
-                                    self!.alert = 1
+                                    self?.activityIndicator.startAnimating()
                                     self!.CreateWishListinServer(Appconstant.WEB_API+Appconstant.CREATE_WISH_LIST, value: serializedjson)
                                     
                                     
@@ -731,13 +871,15 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         if searchActive == true {
             for(var i = 0; i<self.categoryproductItems1[indexPath].ProductvariantList.count; i++){
                 print(self.categoryproductItems1[indexPath].ProductvariantList.count)
-                alertView1.addButtonWithTitle("\(self.categoryproductItems1[indexPath].ProductvariantList[i].Type)" + " - " + "Rs." + "\(self.categoryproductItems1[indexPath].ProductvariantList[i].Price)")
+                alertView1.addButtonWithTitle("\(self.categoryproductItems1[indexPath].ProductvariantList[i].Type)" + " - " + "Rs." + "\(self.categoryproductItems1[indexPath].ProductvariantList[i].DiscountPrice)")
             }
+            alertView1.addButtonWithTitle("Cancel")
         }
         else{
          for(var i = 0; i<self.categoryproductItems[indexPath].ProductvariantList.count ; i++){
-                  alertView1.addButtonWithTitle("\(self.categoryproductItems[indexPath].ProductvariantList[i].Type)" + " - " + "Rs." + "\(self.categoryproductItems[indexPath].ProductvariantList[i].Price)")
+                  alertView1.addButtonWithTitle("\(self.categoryproductItems[indexPath].ProductvariantList[i].Type)" + " - " + "Rs." + "\(self.categoryproductItems[indexPath].ProductvariantList[i].DiscountPrice)")
          }
+            alertView1.addButtonWithTitle("Cancel")
         }
         alertView1.show()
         
@@ -751,15 +893,18 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 if let cell = superview.superview as? ProductCell {
                     indexPath = tableView.indexPathForCell(cell)?.row
               //      print("\(indexPath)")
-                    self.cartcountnumber += 1
-                    self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+                    
                 }
             }
         }
 
         if searchActive == true {
-            
+            if(listItems[indexPath].cartCount == 0){
+                self.cartcountnumber += 1
+                self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+            }
             listItems[indexPath].cartCount = listItems[indexPath].cartCount + 1
+    
             self.tableView.reloadData()
             
             let productmodel = Productvariant.init(ID: listItems[indexPath].ProductVariantID, ProductID: listItems[indexPath].ProductID, ProductName: listItems[indexPath].ProductName, Stock: Int(listItems[indexPath].Stock)!, Description: listItems[indexPath].Type, Unit: listItems[indexPath].Unit, Quantity: Int(listItems[indexPath].Quantity)!, Price: Float(listItems[indexPath].Price)!, DiscountPercentage: Float(listItems[indexPath].DiscountPercentage)!, DiscountPrice: Float(listItems[indexPath].DiscountPrice)!)!
@@ -773,12 +918,18 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
             print(Appconstant.WEB_API+Appconstant.ADD_TO_CART)
             
             sendrequesttoserverAddcart(Appconstant.WEB_API+Appconstant.ADD_TO_CART, value: serializedjson)
-
+            if(listItems[indexPath].cartCount == 1){
+                self.presentViewController(Alert().alert("Item added to cart successfully", message: ""),animated: true,completion: nil)
+            }
             
         }
         else{
-        
+            if(self.productcartcount[indexPath][0] == 0){
+                self.cartcountnumber += 1
+                self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+            }
         self.productcartcount[indexPath][0] = self.productcartcount[indexPath][0] + 1
+            
         self.tableView.reloadData()
 
         let productmodel = Productvariant.init(ID: self.individualproductid[indexPath][0], ProductID: self.productid[indexPath][0], ProductName: self.productname[indexPath][0], Stock: Int(self.productstock[indexPath][0])!, Description: self.producttype[indexPath][0], Unit: self.productUnit[indexPath][0], Quantity: Int(self.productQuantity[indexPath][0])!, Price: Float(self.productprice[indexPath][0])!, DiscountPercentage: Float(self.productDiscountpercent[indexPath][0])!, DiscountPrice: Float(self.productDiscountprice[indexPath][0])!)!
@@ -792,7 +943,11 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         print(Appconstant.WEB_API+Appconstant.ADD_TO_CART)
         
         sendrequesttoserverAddcart(Appconstant.WEB_API+Appconstant.ADD_TO_CART, value: serializedjson)
+            if(self.productcartcount[indexPath][0] == 1){
+                self.presentViewController(Alert().alert("Item added to cart successfully", message: ""),animated: true,completion: nil)
+            }
       }
+        
     }
     
     
@@ -802,8 +957,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         print(indexPath)
         
         if searchActive == true {
-            self.cartcountnumber -= 1
-            self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+            
             if(listItems[indexPath.row].cartCount > 1){
                 
                 listItems[indexPath.row].cartCount = listItems[indexPath.row].cartCount - 1
@@ -822,7 +976,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                     message: "",
                     preferredStyle: .Alert)
                 
-                let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                let action = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
                     self.cartcountnumber -= 1
                     self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
                     self.listItems[indexPath.row].cartCount = self.listItems[indexPath.row].cartCount - 1
@@ -832,6 +986,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                     let serializedjson  = JSONSerializer.toJson(decrementmodel)
                     print(serializedjson)
                     self.sendrequesttoserverForDecrement(Appconstant.WEB_API+Appconstant.CART_DECREMENT+"userId=\(self.userid)&productId=\(self.listItems[indexPath.row].ProductID)&productVariantId=\(self.listItems[indexPath.row].ProductVariantID)")
+                    
                 }
                 let action1 = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
                     
@@ -846,8 +1001,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         }
 
        else if(productcartcount[indexPath.row][0] > 1){
-            self.cartcountnumber -= 1
-            self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+            
             self.productcartcount[indexPath.row][0] = self.productcartcount[indexPath.row][0] - 1
             self.tableView.reloadData()
             let decrementmodel = DecrementViewModel.init(userId: userid, productId: self.productid[indexPath.row][0], productVariantId: self.individualproductid[indexPath.row][0])!
@@ -863,7 +1017,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 message: "",
                 preferredStyle: .Alert)
             
-            let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+            let action = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
                 self.cartcountnumber -= 1
                 self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
                 self.productcartcount[indexPath.row][0] = self.productcartcount[indexPath.row][0] - 1
@@ -987,9 +1141,8 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 else {
                 let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
                 print("responseString = \(responseString)")
-                    dispatch_async(dispatch_get_main_queue()) {
-                self.presentViewController(Alert().alert("", message: "Item added to cart successfully"),animated: true,completion: nil)
-                    }
+                
+                    
                 }
         }
 
@@ -1095,11 +1248,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                     self.wishlistid.append(item["ID"].stringValue)
                     self.wishlistname.append(item["Name"].stringValue)
                 }
-                print(self.wishlistname)
-                if(self.alert == 1){
-                    self.alert = 0
-                    self.alertFunction()
-                }
+                
         }
         
         task.resume()
@@ -1142,7 +1291,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 let json = JSON(data: data!)
                 let item3 = json["Status"].stringValue
                 dispatch_async(dispatch_get_main_queue()) {
-                    self.presentViewController(Alert().alert("", message: item3),animated: true,completion: nil)
+                    self.presentViewController(Alert().alert(item3, message: ""),animated: true,completion: nil)
                 }
         }
         
@@ -1190,16 +1339,14 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                 
                 let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
                 print("responseString = \(responseString)")
-                self.wishlistid.removeAll()
-                self.wishlistname.removeAll()
                 let json = JSON(data: data!)
-                for item in json["result"].arrayValue {
+                let item = json["result"]
                     self.wishlistid.append(item["ID"].stringValue)
                     self.wishlistname.append(item["Name"].stringValue)
-                }
-                if(self.alert == 1){
-                    self.getWishList()
-                }
+                
+                self.activityIndicator.stopAnimating()
+                    self.alertFunction()
+                
         }
         task.resume()
     }
@@ -1281,7 +1428,7 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                         self.type.append(product["Description"].stringValue)
                         self.price.append(product["Price"].stringValue)
                         self.Discountpercent.append(product["DiscountPercentage"].stringValue)
-                        self.Discountprice.append(product["DiscountPrice"].stringValue)
+                        self.Discountprice.append(String(product["DiscountPrice"].doubleValue))
                         self.unit.append(product["Unit"].stringValue)
                         self.unitid.append(product["UnitID"].stringValue)
                         self.quantity.append(product["Quantity"].stringValue)
@@ -1306,15 +1453,27 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
                     }
                     else{
                     let categoryimgPath = Appconstant.IMAGEURL+"Images/Products/"+item["ImageUrl"].stringValue;
-                    let productimg =  UIImage(data: NSData(contentsOfURL: NSURL(string:categoryimgPath)!)!)
+//                    let productimg =  UIImage(data: NSData(contentsOfURL: NSURL(string:categoryimgPath)!)!)
+                        if let data = NSData(contentsOfURL: NSURL(string:categoryimgPath)!){
+                            let productimg =  UIImage(data: NSData(contentsOfURL: NSURL(string:categoryimgPath)!)!)
+                            let categoryproduct1 = CategoryProduct1(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue,  ProductPhoto : productimg!, Productimgurl: item["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems1)!
+                            
+                            let list = List(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue, ProductPhoto: productimg!, Productimgurl: item["ImageUrl"].stringValue, ProductVariantID: self.id[0], ProductID: self.proid[0], ProductName: self.name[0], Price: self.price[0], Stock: self.stock[0], DiscountPercentage: self.Discountpercent[0], DiscountPrice: self.Discountprice[0], Unit: self.unit[0], Type: self.type[0], Quantity: self.quantity[0], UnitID: self.unitid[0], cartCount: self.cartcount[0], wish: item["IsWishListed"].stringValue)!
+                            
+                            self.categoryproductItems1 += [categoryproduct1];
+                            self.listItems += [list];
+                        }
+                        else{
+                            let productimg = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+                            let categoryproduct1 = CategoryProduct1(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue,  ProductPhoto : productimg!, Productimgurl: item["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems1)!
+                            
+                            let list = List(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue, ProductPhoto: productimg!, Productimgurl: item["ImageUrl"].stringValue, ProductVariantID: self.id[0], ProductID: self.proid[0], ProductName: self.name[0], Price: self.price[0], Stock: self.stock[0], DiscountPercentage: self.Discountpercent[0], DiscountPrice: self.Discountprice[0], Unit: self.unit[0], Type: self.type[0], Quantity: self.quantity[0], UnitID: self.unitid[0], cartCount: self.cartcount[0], wish: item["IsWishListed"].stringValue)!
+                            
+                            self.categoryproductItems1 += [categoryproduct1];
+                            self.listItems += [list];
+                        }
                     
-                    let categoryproduct1 = CategoryProduct1(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue,  ProductPhoto : productimg!, Productimgurl: item["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems1)!
                     
-                    let list = List(ID: item["ID"].stringValue, Name: item["Name"].stringValue, Description: item["Description"].stringValue, ProductPhoto: productimg!, Productimgurl: item["ImageUrl"].stringValue, ProductVariantID: self.id[0], ProductID: self.proid[0], ProductName: self.name[0], Price: self.price[0], Stock: self.stock[0], DiscountPercentage: self.Discountpercent[0], DiscountPrice: self.Discountprice[0], Unit: self.unit[0], Type: self.type[0], Quantity: self.quantity[0], UnitID: self.unitid[0], cartCount: self.cartcount[0], wish: item["IsWishListed"].stringValue)!
-
-                    self.categoryproductItems1 += [categoryproduct1];
-                    self.listItems += [list];
-                    print(list.Name)
                     }
                     
                 }
@@ -1362,23 +1521,43 @@ class ProductViewController: UIViewController, UITableViewDataSource, UITableVie
         self.productQuantity.removeAll()
         self.productcartcount.removeAll()
     }
+    
 
+    @IBAction func recurringBtn(sender: AnyObject) {
+        let point = sender.convertPoint(CGPointZero, toView: tableView)
+        let indexPath = self.tableView.indexPathForRowAtPoint(point)!
 
-}
-
-extension ProductViewController: UISearchResultsUpdating {
-    func updateSearchResultsForSearchController(searchController: UISearchController) {
-        filterContentForSearchText(searchController.searchBar.text!)
-        if(searchController.searchBar.text! == ""){
+        
+        if searchActive == true {
+            Appconstant.productid = listItems[indexPath.row].ProductID
+            Appconstant.productvariantid = listItems[indexPath.row].ProductVariantID
         }
-        else {
-        let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "", OrderByType: "", Productname: searchController.searchBar.text!, pageSize: 50, categoryID: Int(self.categoryID)!, pageNumber: 0)!
-        let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
-        print(serializedjson)
-        sendrequesttoserverFilter(Appconstant.WEB_API+Appconstant.GET_PAGELIST, value: serializedjson);
+        else{
+            Appconstant.productid = self.individualproductid[indexPath.row][0]
+            Appconstant.productvariantid = self.productid[indexPath.row][0]
         }
+        self.displayViewController(.BottomTop)
+        
     }
+
+
+    func displayViewController(animationType: SLpopupViewAnimationType) {
+        let myPopupViewController:PopViewController = PopViewController(nibName:"PopViewController", bundle: nil)
+        self.presentpopupViewController(myPopupViewController, animationType: animationType, completion: { () -> Void in
+            
+        })
+    }
+   
+//    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
+//        return UIModalPresentationStyle.OverCurrentContext
+//    }   
+//    
+    
+
 }
+
+
+
 
 
 

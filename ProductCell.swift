@@ -18,6 +18,7 @@ class ProductCell: UITableViewCell {
     
     @IBOutlet weak var cartbtn: UIButton!
     
+     @IBOutlet weak var typeBtn: UIButton!
     var categoryproductItems = [CategoryProduct]()
     var productvariantItems = [ProductVariantList]()
 //        pickerView.reloadAllComponents()

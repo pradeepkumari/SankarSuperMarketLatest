@@ -19,7 +19,6 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
     var userid = ""
     var username1 = ""
     var password1 = ""
-    var cartcountnumber = 0
 
     @IBOutlet weak var sidebarButton: UIBarButtonItem!
     
@@ -28,29 +27,12 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
     var home: UIBarButtonItem!
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
-    @IBOutlet weak var cartbtn: UIButton!
+
     override func viewDidLoad() {
         super.viewDidLoad()
         getuserdetails()
         activityIndicator.startAnimating()
-        self.cartbtn.layer.cornerRadius = 23
-        self.cartbtn.layer.shadowOpacity = 1
-        self.cartbtn.layer.shadowRadius = 2
-        self.cartbtn.layer.shadowOffset = CGSize(width: 1, height: 1)
-        self.cartbtn.layer.shadowColor = UIColor.grayColor().CGColor
-        cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
-        cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
-        cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
-        cartbtn.tintColor = UIColor.whiteColor()
-        cartbtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
-//        cartbtn.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 35)
-        //        cartbtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
-
-        cartbtn.userInteractionEnabled = true
-        cartbtn.translatesAutoresizingMaskIntoConstraints = false
-        self.view.addSubview(cartbtn)
-
-        home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
+                home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
         navigationItem.rightBarButtonItem = home
      self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
         
@@ -62,14 +44,12 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
         sidebarButton.action = Selector("revealToggle:")
         
         
-        Reachability().checkconnection()
+       checkconnection()
      sendrequesttoserverToGetOffer()
 
     }
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        cartcountnumber = 0
-        Getcartcount()
     }
 
     override func didReceiveMemoryWarning() {
@@ -78,6 +58,32 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
     func action(){
         self.performSegueWithIdentifier("go_home2", sender: self)
     }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     func getuserdetails(){
         DBHelper().opensupermarketDB()
         let databaseURL = NSURL(fileURLWithPath:NSTemporaryDirectory()).URLByAppendingPathComponent("supermarket.db")
@@ -110,15 +116,16 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
         let startlbl = cell.viewWithTag(1) as! UILabel
         let expirylbl = cell.viewWithTag(2) as! UILabel
         let couponlbl = cell.viewWithTag(4) as! UILabel
-        
+        let cpybtn = cell.viewWithTag(5) as! UIButton
+        cpybtn.layer.cornerRadius = 10
         deslbl.text = Description[indexPath.row]
         startlbl.text = "From Date : " + startdate[indexPath.row]
         expirylbl.text = "To Date : " + expirydate[indexPath.row]
         couponlbl.text = "Coupon Code : " + couponcode[indexPath.row]
         activityIndicator.stopAnimating()
         cell.layer.borderWidth = 1
-        cell.layer.borderColor = UIColor.grayColor().CGColor
-        
+        cell.layer.borderColor = Appconstant.bgcolor.CGColor
+        cell.selectionStyle = UITableViewCellSelectionStyle.None
         return cell
     }
 
@@ -192,6 +199,7 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
                 
                 
                 dispatch_async(dispatch_get_main_queue()) {
+                     self.activityIndicator.stopAnimating()
                     self.tableView.reloadData()
                 }
         }
@@ -225,52 +233,6 @@ class OfferViewController: UIViewController, UITableViewDataSource, UITableViewD
         self.presentViewController(Alert().alert("Coupon code copied", message: ""),animated: true,completion: nil)
     }
     
-    func Getcartcount() {
-        let username = self.username1
-        let password = self.password1
-        let loginString = NSString(format: "%@:%@", username, password)
-        let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
-        let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
-        
-        
-        let request = NSMutableURLRequest(URL: NSURL(string: Appconstant.WEB_API+Appconstant.GET_CART_OPEN+self.userid)!)
-        request.HTTPMethod = "GET"
-        
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(base64LoginString, forHTTPHeaderField: "Authorization")
-        request.addValue(Appconstant.TENANT, forHTTPHeaderField: "TENANT")
-        
-        let task = NSURLSession.sharedSession().dataTaskWithRequest(request)
-            { data, response, error in
-                guard error == nil && data != nil else {                                                          // check for fundamental networking error
-                    print("ERROR")
-                    print("response = \(response)")
-                    return
-                }
-                
-                if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {           // check for http errors
-                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
-                    print("response = \(response)")
-                }
-                
-                
-                let json = JSON(data: data!)
-                var item = json["result"]
-                for item2 in item["CartLineItemList"].arrayValue{
-                    
-                    self.cartcountnumber = self.cartcountnumber + 1
-                    
-                    
-                }
-                
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
-                }
-        }
-        
-        task.resume()
-        
-    }
 
 
 }

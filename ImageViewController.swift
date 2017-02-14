@@ -34,9 +34,35 @@ class ImageViewController: UIViewController, UICollectionViewDelegate, UICollect
 
         activityIndicator.startAnimating()
 
-        Reachability().checkconnection()
+        checkconnection()
         sendrequesttoserver()
     }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     func getuserdetails(){
         DBHelper().opensupermarketDB()
         let databaseURL = NSURL(fileURLWithPath:NSTemporaryDirectory()).URLByAppendingPathComponent("supermarket.db")
@@ -87,13 +113,27 @@ class ImageViewController: UIViewController, UICollectionViewDelegate, UICollect
             return cell
         }
         let imgpath = Appconstant.IMAGEURL+"Images/Gallery/"+self.imgurl[indexPath.row]
-        let images =  UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
-        img.image = images
+//        let images =  UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
+        if let data = NSData(contentsOfURL: NSURL(string:imgpath)!){
+            let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
+            img.image = productimages
+        }
+        else{
+            let productimages = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+            img.image = productimages
+        }
+
+        self.view.userInteractionEnabled = true
         activityIndicator.stopAnimating()
         return cell
     }
     func collectionView(collectionView: UICollectionView, shouldSelectItemAtIndexPath indexPath: NSIndexPath) -> Bool {
+        if(indexPath.row == 1){
+            return true
+        }
+        else {
         id = albumid[indexPath.row]
+        }
 //        self.performSegueWithIdentifier("goto_images", sender: self)
         return true
     }
@@ -145,7 +185,7 @@ class ImageViewController: UIViewController, UICollectionViewDelegate, UICollect
                 }
                 for(var i = 0; i<self.albumid.count - 1; i++){
 
-                    Reachability().checkconnection()
+                    self.checkconnection()
                     self.sendrequesttoserverforImages(Appconstant.WEB_API+Appconstant.GET_IMAGES+self.albumid[i])
                 }
                 

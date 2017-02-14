@@ -138,7 +138,11 @@ class CartconfirmViewController: UIViewController, UITableViewDelegate, UITableV
         let subtotal = cell.viewWithTag(6) as! UILabel
 
         let productimgpath = Appconstant.IMAGEURL+"Images/Products/"+cartimgurl[indexPath.row];
-        let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
+//        let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
+        var productimages: UIImage? = UIImage(contentsOfFile: productimgpath)
+        if productimages == nil {
+            productimages = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+        }
         productimg.image = productimages
         namelbl.text = cartname[indexPath.row]
         quantitylbl.text = cartquantity[indexPath.row]
@@ -215,51 +219,51 @@ class CartconfirmViewController: UIViewController, UITableViewDelegate, UITableV
     
     func sendrequesttoserverPlaceOrder(url : String,value : String)
     {
-        let username = "rajagcs08@gmail.com"
-        let password = "1234"
-        let loginString = NSString(format: "%@:%@", username, password)
-        let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
-        let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
-       
-        
-        let request = NSMutableURLRequest(URL: NSURL(string: url)!)
-        request.HTTPMethod = "Post"
-   
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(base64LoginString, forHTTPHeaderField: "Authorization")
-        request.addValue(Appconstant.TENANT, forHTTPHeaderField: "TENANT")
-        
-        request.HTTPBody = value.dataUsingEncoding(NSUTF8StringEncoding)
-        
-        
-        
-        let task = NSURLSession.sharedSession().dataTaskWithRequest(request)
-            { data, response, error in
-                guard error == nil && data != nil else {
-                    // check for fundamental networking error
-                    
-                    return
-                }
-                
-                if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {
-                    // check for http errors
-                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
-                    print("response = \(response)")
-                    self.presentViewController(Alert().alert("Message", message: "order failed.."),animated: true,completion: nil)
-                }
-                else{
-                let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
-                print("responseString = \(responseString)")
-        
-                }
-                
-
-        
+//        let username = "rajagcs08@gmail.com"
+//        let password = "1234"
+//        let loginString = NSString(format: "%@:%@", username, password)
+//        let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
+//        let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
+//       
+//        
+//        let request = NSMutableURLRequest(URL: NSURL(string: url)!)
+//        request.HTTPMethod = "Post"
+//   
+//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//        request.addValue(base64LoginString, forHTTPHeaderField: "Authorization")
+//        request.addValue(Appconstant.TENANT, forHTTPHeaderField: "TENANT")
+//        
+//        request.HTTPBody = value.dataUsingEncoding(NSUTF8StringEncoding)
+//        
+//        
+//        
+//        let task = NSURLSession.sharedSession().dataTaskWithRequest(request)
+//            { data, response, error in
+//                guard error == nil && data != nil else {
+//                    // check for fundamental networking error
+//                    
+//                    return
+//                }
+//                
+//                if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {
+//                    // check for http errors
+//                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
+//                    print("response = \(response)")
+//                    self.presentViewController(Alert().alert("Message", message: "order failed.."),animated: true,completion: nil)
+//                }
+//                else{
+//                let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
+//                print("responseString = \(responseString)")
+//        
+//                }
+//                
+//
+//        
                 self.presentViewController(Alert().alert("Message", message: "Order Placed Successfully"),animated: true,completion: nil)
-                
-        }
-        
-        task.resume()
+//
+//        }
+//        
+//        task.resume()
     }
     
 

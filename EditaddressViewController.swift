@@ -47,7 +47,7 @@ class EditaddressViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         getuserdetails()
-        save.layer.cornerRadius = 5
+        save.layer.cornerRadius = 15
         statetxt.delegate = self
         countrytxt.delegate = self
         pincodetxt.delegate = self
@@ -55,8 +55,6 @@ class EditaddressViewController: UIViewController, UITextFieldDelegate {
         mobilenotxt.delegate = self
         mobilenotxt.keyboardType = UIKeyboardType.NumberPad
         
-       
-//   self.navigationItem.setHidesBackButton(true, animated:true);
             let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
             view.addGestureRecognizer(tap)
         if(edit == 1){
@@ -144,7 +142,19 @@ class EditaddressViewController: UIViewController, UITextFieldDelegate {
    
                 self.addressid = item["ID"].stringValue
 
-                
+                if(self.edit == 1){
+                    dispatch_async(dispatch_get_main_queue()) {
+                    self.presentViewController(Alert().alert("Changes saved successfully", message: ""),animated: true,completion: nil)
+                    self.nametxt.text = ""
+                    self.addr1.text = ""
+                    self.addr2.text = ""
+                    self.citytxt.text = ""
+                    self.statetxt.text = ""
+                    self.countrytxt.text = ""
+                    self.pincodetxt.text = ""
+                    self.mobilenotxt.text = ""
+                    }
+                }
         }
         
         task.resume()
@@ -223,6 +233,32 @@ class EditaddressViewController: UIViewController, UITextFieldDelegate {
     func dismissKeyboard() {
         view.endEditing(true)
     }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     
     @IBAction func SavebtnAction(sender: AnyObject) {
         let name: String = self.nametxt.text!
@@ -239,7 +275,7 @@ class EditaddressViewController: UIViewController, UITextFieldDelegate {
         else {
             
             if(edit == 0) {
-                Reachability().checkconnection()
+               checkconnection()
             let userid1: Int = Int(userid)!
             let pincode: Int = Int(self.pincodetxt.text!)!
             let citymodel = CityViewModel.init(Name: self.citytxt.text!)!
@@ -270,7 +306,7 @@ class EditaddressViewController: UIViewController, UITextFieldDelegate {
             }
             else
             {
-                self.presentViewController(Alert().alert("Title", message: "Address added successfully"),animated: true,completion: nil)
+                self.presentViewController(Alert().alert("Address added successfully", message: ""),animated: true,completion: nil)
                 self.nametxt.text = ""
                 self.addr1.text = ""
                 self.addr2.text = ""
@@ -281,6 +317,7 @@ class EditaddressViewController: UIViewController, UITextFieldDelegate {
                 self.mobilenotxt.text = ""
                 
             }
+            
         }
 
         }
@@ -302,16 +339,11 @@ class EditaddressViewController: UIViewController, UITextFieldDelegate {
             }
     }
 
-        self.performSegueWithIdentifier("goto_address", sender: self)
+        
         
     }
         
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if(segue.identifier == "goto_address") {
-            let nextview = segue.destinationViewController as! AddressViewController
-                nextview.userid = userid
-        }
-    }
+
     
 }
 

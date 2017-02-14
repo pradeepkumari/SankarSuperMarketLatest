@@ -20,11 +20,13 @@ class OrderViewController: UIViewController, UITableViewDataSource, UITableViewD
     
     @IBOutlet weak var tableView: UITableView!
     
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     override func viewDidLoad() {
         super.viewDidLoad()
         getuserdetails()
         // Do any additional setup after loading the view, typically from a nib.
-        Reachability().checkconnection()
+        activityIndicator.startAnimating()
+        checkconnection()
         gethistory()
         tableView.delegate = self
         tableView.dataSource = self
@@ -54,7 +56,32 @@ class OrderViewController: UIViewController, UITableViewDataSource, UITableViewD
         }
     }
 
-    
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
      func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let ordercell =  tableView.dequeueReusableCellWithIdentifier("orderCell", forIndexPath: indexPath) as UITableViewCell!
         
@@ -68,9 +95,8 @@ class OrderViewController: UIViewController, UITableViewDataSource, UITableViewD
         datelbl.text = date[indexPath.row]
         
         ordercell.layer.borderWidth = 1
-        ordercell.layer.borderColor = UIColor.grayColor().CGColor
-        
-        
+        ordercell.layer.borderColor = UIColor.whiteColor().CGColor
+        activityIndicator.stopAnimating()
         return ordercell
     }
      func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -125,10 +151,31 @@ class OrderViewController: UIViewController, UITableViewDataSource, UITableViewD
                 for items in json["result"].arrayValue {
                     self.orderid.append(items["ID"].stringValue)
                     self.amount.append(items["TotalPrice"].stringValue)
-                    self.date.append(items["OrderDateTime"].stringValue)
+                    
+                    let str = items["OrderDateTime"].stringValue
+                    
+//                    let dateFormatter = NSDateFormatter()
+//                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"//this your string date format
+//                    dateFormatter.timeZone = NSTimeZone(name: "UTC")
+//                    let value1 = dateFormatter.dateFromString(item["Date"].stringValue)
+//                    let value2 = dateFormatter.dateFromString(item["RequestStartTime"].stringValue)
+//                    let value3 = dateFormatter.dateFromString(item["RequestEndTime"].stringValue)
+//                    
+//                    
+//                    dateFormatter.dateFormat = "dd/M/yyyy"///this is you want to convert format
+//                    dateFormatter.timeZone = NSTimeZone(name: "UTC")
+//                    let value11 = dateFormatter.stringFromDate(value1!)
+
+                    let s = str.substringWithRange(Range(start: str.startIndex.advancedBy(0), end: str.endIndex.advancedBy(-str.componentsSeparatedByCharactersInSet(NSCharacterSet.letterCharacterSet().invertedSet).count + 10)))
+                    
+                    self.date.append(s)
 
                 }
                 dispatch_async(dispatch_get_main_queue()) {
+                    if(self.orderid.count == 0){
+                        self.activityIndicator.stopAnimating()
+                        self.presentViewController(Alert().alert("Order history not found", message: ""),animated: true,completion: nil)
+                    }
                     self.tableView.reloadData()
                 }
         }

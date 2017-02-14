@@ -35,14 +35,21 @@ class AddressViewController: UIViewController, UITableViewDataSource, UITableVie
     var password1 = ""
 
     @IBOutlet var tableView: UITableView!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        activityIndicator.startAnimating()
+        let backItem = UIBarButtonItem()
+        backItem.title = "Back"
+        self.navigationController?.navigationBar.topItem?.backBarButtonItem = backItem
         
-       
+
     }
+    
+
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         getuserdetails()
@@ -55,10 +62,36 @@ class AddressViewController: UIViewController, UITableViewDataSource, UITableVie
         pincode.removeAll()
         mobileno.removeAll()
         rowcount = 0
-        Reachability().checkconnection()
+        checkconnection()
         getaddressid()
         getAddressFromServer()
     }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     func getuserdetails(){
         DBHelper().opensupermarketDB()
         let databaseURL = NSURL(fileURLWithPath:NSTemporaryDirectory()).URLByAppendingPathComponent("supermarket.db")
@@ -102,9 +135,9 @@ class AddressViewController: UIViewController, UITableViewDataSource, UITableVie
         countrylbl.text = country[indexPath.row]
         pincodelbl.text = pincode[indexPath.row]
         mobilenolbl.text = mobileno[indexPath.row]
-        acell.layer.borderWidth = 0.5
-        acell.layer.borderColor = UIColor.grayColor().CGColor
-
+        acell.layer.borderWidth = 1
+        acell.layer.borderColor = Appconstant.bgcolor.CGColor
+        activityIndicator.stopAnimating()
         return acell
     }
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -120,7 +153,6 @@ class AddressViewController: UIViewController, UITableViewDataSource, UITableVie
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 
         if(self.seguevalue == "Fromcart") {
-            seguevalue.removeAll()
             
             self.performSegueWithIdentifier("goto_confirm", sender: self)
         }
@@ -184,7 +216,7 @@ class AddressViewController: UIViewController, UITableViewDataSource, UITableVie
             message: "",
             preferredStyle: .Alert)
         
-        let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+        let action = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
 
             self.name.removeAll()
             self.address1.removeAll()
@@ -252,7 +284,7 @@ class AddressViewController: UIViewController, UITableViewDataSource, UITableVie
             nextview.pincode = self.pincode[(indexPath?.row)!]
             nextview.mobileno = self.mobileno[(indexPath?.row)!]
             nextview.total = self.total
-            nextview.addressid = self.addressid[(indexPath?.row)!]
+            nextview.addressid = self.addressids[(indexPath?.row)!]
         }
         if(segue.identifier == "from_edit"){
             let nextview = segue.destinationViewController as! EditaddressViewController
@@ -379,7 +411,14 @@ class AddressViewController: UIViewController, UITableViewDataSource, UITableVie
                     self.mobileno.append(value3["ContactNo"].stringValue)
                     self.rowcount = self.rowcount + 1
                 }
+                print(self.addressids)
+                
+
                 dispatch_async(dispatch_get_main_queue()) {
+                    if(self.rowcount == 0){
+                        self.activityIndicator.stopAnimating()
+                        self.presentViewController(Alert().alert("No address found", message: ""),animated: true,completion: nil)
+                    }
                     self.tableView.reloadData()
                 }
         }

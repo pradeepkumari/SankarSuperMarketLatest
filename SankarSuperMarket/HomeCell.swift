@@ -10,11 +10,11 @@ import UIKit
 
 class HomeCell: UITableViewCell {
     
-
-    @IBOutlet weak var categorylbl: UILabel!
-    
-    @IBOutlet weak var categoryimg: UIImageView!
-
+//
+//    @IBOutlet weak var categorylbl: UILabel!
+//    
+//    @IBOutlet weak var categoryimg: UIImageView!
+//
     
   
 

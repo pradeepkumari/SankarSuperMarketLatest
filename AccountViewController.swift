@@ -21,15 +21,17 @@ class AccountViewController: UIViewController {
     @IBOutlet weak var feedback: UIButton!
 
     @IBOutlet weak var profile: UIButton!
+     @IBOutlet weak var changepwd: UIButton!
+    @IBOutlet weak var notificationSwitch: UISwitch!
     
-
-    @IBOutlet weak var changepwd: UIButton!
+    @IBOutlet weak var Topview: UIView!
+   
     
     @IBOutlet weak var logout: UIButton!
     
     @IBOutlet var usernamelabel: UILabel!
     
-    @IBOutlet weak var notificationSwitch: UISwitch!
+    
     
     @IBOutlet weak var profileimg: UIImageView!
     var home: UIBarButtonItem!
@@ -46,7 +48,7 @@ class AccountViewController: UIViewController {
         self.profileimg.layer.cornerRadius = self.profileimg.frame.size.height/2
         self.profileimg.clipsToBounds = true
         self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
-
+       
         home = UIBarButtonItem(image: UIImage(named: "ic_home_36pt.png"), style: .Plain, target: self, action: Selector("action"))
         navigationItem.rightBarButtonItem = home
 
@@ -61,7 +63,7 @@ class AccountViewController: UIViewController {
         
         sideBarButton.target = revealViewController()
         sideBarButton.action = Selector("revealToggle:")
-        
+       
     }
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
@@ -92,6 +94,9 @@ class AccountViewController: UIViewController {
                     usernamelabel.text = results?.stringForColumn("NAME")
                     emailid = (results?.stringForColumn("EMAILID"))!
                     password1 = (results?.stringForColumn("PASSWORD"))!
+                    print("-------")
+                    print(emailid)
+                    print(password1)
                 }
                 let profileviewmodel = ProfileViewModel.init(EmailID: emailid, Password: password1)!
                 let serializedjson  = JSONSerializer.toJson(profileviewmodel)
@@ -141,6 +146,8 @@ class AccountViewController: UIViewController {
         
     }
     
+    @IBAction func ChangePwdBtn(sender: AnyObject) {
+    }
     func getProfileImage(url : String,value : String){
         let username = emailid
         let password = password1
@@ -187,10 +194,13 @@ class AccountViewController: UIViewController {
                 }
                 else {
                     print(self.imagepath)
-                    
-                let profileimage =  UIImage(data: NSData(contentsOfURL: NSURL(string:self.imagepath)!)!)
+//                let profileimage =  UIImage(data: NSData(contentsOfURL: NSURL(string:self.imagepath)!)!)
 //                let image = UIImageView(frame: CGRectMake(0, 0, 100, 100))
                      dispatch_async(dispatch_get_main_queue()) {
+                        var profileimage: UIImage? = UIImage(contentsOfFile: self.imagepath)
+                        if profileimage == nil {
+                            profileimage = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+                        }
                 self.profileimg.image = profileimage
                     }
                 }
@@ -208,19 +218,24 @@ class AccountViewController: UIViewController {
             
             nextview.imagepath = imagepath
         }
+        if(segue.identifier == "to_address") {
+            let nextview = segue.destinationViewController as! AddressViewController
+            
+            nextview.seguevalue = ""
+        }
     }
 
   
     @IBAction func FeedBackBtnAction(sender: AnyObject) {
         let alert = UIAlertController(title: "Rate SankarSuperMarket", message: "", preferredStyle: UIAlertControllerStyle.Alert)
-        alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default, handler: { alertAction in
+        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: { alertAction in
             UIApplication.sharedApplication().openURL(NSURL(string : "http://bit.ly/29QvH8q")!)
             alert.dismissViewControllerAnimated(true, completion: nil)
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: UIAlertActionStyle.Default, handler: { alertAction in
         }))
         self.presentViewController(alert, animated: true, completion: nil)
-        feedback.showsTouchWhenHighlighted = true
+
 
 
 

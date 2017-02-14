@@ -8,14 +8,16 @@
 
 import UIKit
 
-class ChangepasswordViewController: UIViewController {
+class ChangepasswordViewController: UIViewController, UITextFieldDelegate {
     
-    @IBOutlet var oldpwdtext: UITextField!
+
     
-    @IBOutlet var newpwdtext: UITextField!
+    @IBOutlet weak var oldpwdtext: UITextField!
+  
+    @IBOutlet weak var newpwdtext: UITextField!
     
-    @IBOutlet var confirmtext: UITextField!
-    
+    @IBOutlet weak var confirmtext: UITextField!
+
     @IBOutlet weak var change: UIButton!
     
     
@@ -28,10 +30,28 @@ class ChangepasswordViewController: UIViewController {
         super.viewDidLoad()
         getuserdetails()
         // Do any additional setup after loading the view, typically from a nib.
-  
+        
+        let bottomLine = CALayer()
+        bottomLine.frame = CGRectMake(0.0, oldpwdtext.frame.height - 1 , oldpwdtext.frame.width, 1.0)
+        bottomLine.backgroundColor = UIColor.grayColor().CGColor
+        oldpwdtext.borderStyle = UITextBorderStyle.None
+        oldpwdtext.layer.addSublayer(bottomLine)
+        let bottomLine1 = CALayer()
+        bottomLine1.frame = CGRectMake(0.0, newpwdtext.frame.height - 1, newpwdtext.frame.width, 1.0)
+        bottomLine1.backgroundColor = UIColor.grayColor().CGColor
+        newpwdtext.borderStyle = UITextBorderStyle.None
+        newpwdtext.layer.addSublayer(bottomLine1)
+        let bottomLine2 = CALayer()
+        bottomLine2.frame = CGRectMake(0.0, confirmtext.frame.height - 1, confirmtext.frame.width, 1.0)
+        bottomLine2.backgroundColor = UIColor.grayColor().CGColor
+        confirmtext.borderStyle = UITextBorderStyle.None
+        confirmtext.layer.addSublayer(bottomLine2)
         let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
         view.addGestureRecognizer(tap)
-        change.layer.cornerRadius = 5
+        change.layer.cornerRadius = 16
+        newpwdtext.delegate = self
+        confirmtext.delegate = self
+        self.view.backgroundColor = UIColor.whiteColor()
     }
     func dismissKeyboard() {
         view.endEditing(true)
@@ -61,6 +81,8 @@ class ChangepasswordViewController: UIViewController {
     }
 
     @IBAction func ChangebtnAction(sender: AnyObject) {
+   
+        
         let newpassword = self.newpwdtext.text!
         let confirmpassword = self.confirmtext.text!
        
@@ -70,8 +92,11 @@ class ChangepasswordViewController: UIViewController {
         else if(newpassword != confirmpassword) {
             self.presentViewController(Alert().alert("Warning", message: "Enter correct password"),animated: true,completion: nil)
         }
+        else if((self.oldpwdtext.text!) != self.password1){
+            self.presentViewController(Alert().alert("Warning", message: "Old Password is wrong"),animated: true,completion: nil)
+        }
         else {
-            Reachability().checkconnection()
+            checkconnection()
             let changepassword = ChangePassword.init(ID: userid, Password: self.newpwdtext.text!)!
             let serializedjson  = JSONSerializer.toJson(changepassword)
             sendrequesttoserver(Appconstant.WEB_API+Appconstant.USER_CHANGE_PASSWORD, value: serializedjson)
@@ -80,9 +105,37 @@ class ChangepasswordViewController: UIViewController {
 
         
     }
-    
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     func sendrequesttoserver(url : String,value : String)
     {
+        checkconnection()
+        print(url)
+        print(value)
         let username = self.username1
         let password = self.password1
         let loginString = NSString(format: "%@:%@", username, password)
@@ -119,6 +172,7 @@ class ChangepasswordViewController: UIViewController {
                 if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {           // check for http errors
                     print("statusCode should be 200, but is \(httpStatus.statusCode)")
                     print("response = \(response)")
+                    return
                 }
                 
                 let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
@@ -130,21 +184,22 @@ class ChangepasswordViewController: UIViewController {
                 let supermarketDB = FMDatabase(path: databasePath as String)
                 if supermarketDB.open() {
                     
-                    let insertSQL = "UPDATE LOGIN SET PASSWORD = " + "\(self.newpwdtext.text!)" + " WHERE USERID=" + "\(self.userID)"
-                    
+                    let insertSQL = "UPDATE LOGIN SET PASSWORD = '"+self.newpwdtext.text!+"' WHERE USERID="+"\(self.userID)"
+                    "UPDATE Contact SET Name = 'Chris' WHERE Id = 1;"
                     let result = supermarketDB.executeUpdate(insertSQL,
                         withArgumentsInArray: nil)
-                    if !result {
-                        //   status.text = "Failed to add contact"
-                        print("Error: \(supermarketDB.lastErrorMessage())")
-                    }
-                    else{
+//                    if !result {
+//                        //   status.text = "Failed to add contact"
+//                        print("Error: \(supermarketDB.lastErrorMessage())")
+//                    }
+//                    else{
                           dispatch_async(dispatch_get_main_queue()) {
                         self.presentViewController(Alert().alert("Password changed successfully", message: ""),animated: true,completion: nil)
+                           self.password1 = self.newpwdtext.text!
                             self.oldpwdtext.text = ""
                             self.newpwdtext.text = ""
                             self.confirmtext.text = ""
-                        }
+                       // }
 
                     }
                 }
@@ -153,6 +208,34 @@ class ChangepasswordViewController: UIViewController {
         
         
         task.resume()
+        
+    }
+    func textFieldDidBeginEditing(textField: UITextField) {
+        if(textField == newpwdtext) {
+            animateViewMoving(true, moveValue: 200)
+        }
+        if(textField == confirmtext) {
+            animateViewMoving(true, moveValue: 200)
+        }
+        
+    }
+    func textFieldDidEndEditing(textField: UITextField) {
+        if(textField == newpwdtext) {
+            animateViewMoving(false, moveValue: 200)
+        }
+        if(textField == confirmtext) {
+            animateViewMoving(false, moveValue: 200)
+        }
+        
+    }
+    func animateViewMoving (up:Bool, moveValue :CGFloat){
+        let movementDuration:NSTimeInterval = 0.3
+        let movement:CGFloat = ( up ? -moveValue : moveValue)
+        UIView.beginAnimations( "animateView", context: nil)
+        UIView.setAnimationBeginsFromCurrentState(true)
+        UIView.setAnimationDuration(movementDuration )
+        self.view.frame = CGRectOffset(self.view.frame, 0,  movement)
+        UIView.commitAnimations()
         
     }
 

@@ -27,13 +27,16 @@ class SigninViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        signin.layer.cornerRadius = 5
-        cancel.layer.cornerRadius = 5
+        signin.layer.cornerRadius = 17
+        cancel.layer.cornerRadius = 17
+        signin.backgroundColor = Appconstant.btngreencolor
+        cancel.backgroundColor = Appconstant.btngreencolor
+        self.view.backgroundColor = UIColor.whiteColor()
         txtmailid.delegate = self
         txtpassword.delegate = self
         let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
         view.addGestureRecognizer(tap)
-
+        navigationController?.navigationBar.hidden = true
     }
     
     func alert(title: String,message: String)-> UIAlertController
@@ -50,7 +53,7 @@ class SigninViewController: UIViewController, UITextFieldDelegate {
             self.presentViewController(Alert().alert("Warning", message: "Don't leave empty space"),animated: true,completion: nil)
         }
         else {
-            Reachability().checkconnection()
+            checkconnection()
             let loginViewmodel = Login.init(EmailID: self.txtmailid.text!, Password: self.txtpassword.text!)!
             let serializedjson  = JSONSerializer.toJson(loginViewmodel)
             print(serializedjson)
@@ -58,7 +61,32 @@ class SigninViewController: UIViewController, UITextFieldDelegate {
 
        }
     }
-    
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     func textFieldDidBeginEditing(textField: UITextField) {
         if(textField == txtmailid) {
             animateViewMoving(true, moveValue: 200)
@@ -160,7 +188,7 @@ class SigninViewController: UIViewController, UITextFieldDelegate {
 //
 //                        if(!results.next()){
                         
-                        let insertSQL = "INSERT INTO LOGIN (USERID,NAME,EMAILID,PASSWORD,PHONENUMBER) VALUES ('\(item["ID"].stringValue)','\(item["Name"].stringValue)','\(self.txtmailid.text!)','\(self.txtpassword.text!)','\(item["PhoneNumber"].stringValue)')"
+                        let insertSQL = "INSERT INTO LOGIN (USERID,NAME,EMAILID,PASSWORD,PHONENUMBER) VALUES ('\(item["ID"].stringValue)','\(item["Name"].stringValue)','\(item["EmailID"].stringValue)','\(self.txtpassword.text!)','\(item["PhoneNumber"].stringValue)')"
                         
                         let result = supermarketDB.executeUpdate(insertSQL,
                             withArgumentsInArray: nil)

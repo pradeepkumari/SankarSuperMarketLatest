@@ -18,10 +18,19 @@ class ViewController: UIViewController {
    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        self.view.backgroundColor = UIColor.whiteColor()
 
-        signup.layer.cornerRadius = 5
-        signin.layer.cornerRadius = 5
+        signup.layer.cornerRadius = 17
+        signin.layer.cornerRadius = 17
+        
+        signup.backgroundColor = Appconstant.btngreencolor
+        signin.backgroundColor = Appconstant.btngreencolor
+        
+        navigationController?.navigationBar.hidden = true
+//        self.cartbtn.layer.shadowOpacity = 1
+//        self.cartbtn.layer.shadowRadius = 2
+//        self.cartbtn.layer.shadowOffset = CGSize(width: 1, height: 1)
+//        self.cartbtn.layer.shadowColor = UIColor.grayColor().CGColor
 
     }
 }

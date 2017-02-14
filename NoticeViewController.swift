@@ -26,7 +26,7 @@ class NoticeViewController: UIViewController, UITableViewDataSource, UITableView
     override func viewDidLoad() {
         super.viewDidLoad()
         getuserdetails()
-        
+
         self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
         self.view.userInteractionEnabled = false
         activityIndicator.startAnimating()
@@ -77,9 +77,8 @@ class NoticeViewController: UIViewController, UITableViewDataSource, UITableView
         let noticelbl = noticecell.viewWithTag(2) as! UILabel
         noticelbl.text = notice.Title
         noticeimg.image = notice.NotificationPhoto
-        
-        noticecell.layer.borderWidth = 0.5
-        noticecell.layer.borderColor = UIColor.grayColor().CGColor
+        noticecell.layer.borderWidth = 1
+        noticecell.layer.borderColor = Appconstant.bgcolor.CGColor
 
         activityIndicator.stopAnimating()
         return noticecell
@@ -143,10 +142,21 @@ class NoticeViewController: UIViewController, UITableViewDataSource, UITableView
                 for item in json["result"].arrayValue {
                     print(item["ID"].stringValue)
                     let NotificationimgPath = Appconstant.IMAGEURL+"Images/Notice/"+item["ImagePath"].stringValue;
-                    let nimg = UIImage(data: NSData(contentsOfURL: NSURL(string:NotificationimgPath)!)!)
-                    let notification = Notification(Title: item["Title"].stringValue, Description: item["Description"].stringValue, StartDate: item["StartDate"].stringValue,  NotificationPhoto : nimg!)!
-                    
-                    self.notificationItems += [notification];
+//                    let nimg = UIImage(data: NSData(contentsOfURL: NSURL(string:NotificationimgPath)!)!)
+                    if let data = NSData(contentsOfURL: NSURL(string:NotificationimgPath)!){
+                        let nimg =  UIImage(data: NSData(contentsOfURL: NSURL(string:NotificationimgPath)!)!)
+                        let notification = Notification(Title: item["Title"].stringValue, Description: item["Description"].stringValue, StartDate: item["StartDate"].stringValue,ExpiryDate: item["ExpiryDate"].stringValue,  NotificationPhoto : nimg!)!
+                        
+                        self.notificationItems += [notification];
+                    }
+                    else{
+                        let nimg = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+                        let notification = Notification(Title: item["Title"].stringValue, Description: item["Description"].stringValue, StartDate: item["StartDate"].stringValue,ExpiryDate: item["ExpiryDate"].stringValue,  NotificationPhoto : nimg!)!
+                        
+                        self.notificationItems += [notification];
+                    }
+
+                   
                 }
                 
                 dispatch_async(dispatch_get_main_queue()) {
@@ -167,8 +177,9 @@ class NoticeViewController: UIViewController, UITableViewDataSource, UITableView
             nextviewcontroller.noticeimg = self.notificationItems[(indexPath?.row)!].NotificationPhoto
             nextviewcontroller.noticenamelbl = self.notificationItems[(indexPath?.row)!].Title
             nextviewcontroller.noticedescriptionlbl = self.notificationItems[(indexPath?.row)!].Description
-            nextviewcontroller.noticedatelbl = self.notificationItems[(indexPath?.row)!].StartDate
-             
+            nextviewcontroller.noticesdatelbl = self.notificationItems[(indexPath?.row)!].StartDate
+            nextviewcontroller.noticeedatelbl = self.notificationItems[(indexPath?.row)!].ExpiryDate
+            
         }
         
     }

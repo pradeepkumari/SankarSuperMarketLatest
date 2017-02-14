@@ -30,9 +30,34 @@ class ViewPhoto: UIViewController, UICollectionViewDelegate, UICollectionViewDat
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         albumimage.removeAll()
-        Reachability().checkconnection()
+        checkconnection()
         
         sendrequesttoserver()
+    }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
     }
 
      func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
@@ -40,9 +65,17 @@ class ViewPhoto: UIViewController, UICollectionViewDelegate, UICollectionViewDat
         let img = cell.viewWithTag(1) as! UIImageView
         let imgpath = Appconstant.IMAGEURL+"Images/Gallery/"+self.albumimage[indexPath.row]
         print(imgpath)
-        let images =  UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
-//        imagelist.append(images!)
-        img.image = images
+     
+//       let images = UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
+        if let data = NSData(contentsOfURL: NSURL(string:imgpath)!){
+            let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:imgpath)!)!)
+            img.image = productimages
+        }
+        else{
+            let productimages = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+            img.image = productimages
+        }
+        
         activityIndicator.stopAnimating()
         return cell
     }

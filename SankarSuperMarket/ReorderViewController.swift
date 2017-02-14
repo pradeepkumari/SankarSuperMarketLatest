@@ -39,6 +39,8 @@ class ReorderViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     @IBOutlet var mobilenolbl: UILabel!
     
+    @IBOutlet weak var orderIDlbl: UILabel!
+
     
     @IBOutlet weak var cartbtn: UIButton!
     @IBOutlet var scrollView: UIScrollView!
@@ -71,7 +73,7 @@ class ReorderViewController: UIViewController, UITableViewDelegate, UITableViewD
         super.viewDidLoad()
         getuserdetails()
         reorder.layer.cornerRadius = 3
- 
+        orderIDlbl.text = "Order No. : ORD/" + self.cartid
         cashbtn.setImage(UIImage(named: "checked.png"), forState: .Normal)
         self.cartbtn.frame = CGRectMake(self.view.frame.size.width-80, self.view.frame.size.height - 80, 45, 45)
         self.cartbtn.layer.cornerRadius = 23
@@ -82,18 +84,29 @@ class ReorderViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
+        self.cartbtn.setTitle("0", forState: .Normal)
         cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
         cartbtn.tintColor = UIColor.whiteColor()
-        cartbtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
+        cartbtn.backgroundColor = Appconstant.btngreencolor
+        cartbtn.titleLabel?.textColor = Appconstant.btngreencolor
 //        cartbtn.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 35)
         //        cartbtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
         cartbtn.userInteractionEnabled = true
         cartbtn.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(cartbtn)
-        
+        reorder.layer.cornerRadius = 20
         tableView.delegate = self
         tableView.dataSource = self
-        Reachability().checkconnection()
+        
+        let label = UILabel(frame: CGRectMake(0, 0, 200, 21))
+//        label.center = CGPointMake(160, 284)
+        label.textAlignment = NSTextAlignment.Left
+        label.text = "  Product Items"
+        label.font = UIFont(name: "HelveticaNeue-Bold", size: 15)
+//        label.textColor = UIColor.grayColor()
+        label.textColor = UIColor(red: 85.0/255.0, green: 85.0/255.0, blue: 85.0/255.0, alpha: 1.0)
+        self.tableView.tableHeaderView = label
+        checkconnection()
         getOrderHistoryUsingCartid()
         
         
@@ -104,10 +117,33 @@ class ReorderViewController: UIViewController, UITableViewDelegate, UITableViewD
         super.viewWillAppear(animated)
         cartcountnumber = 0
         Getcartcount()
-        reorder.layer.cornerRadius = 5
-        reorder.layer.borderWidth = 1
     }
-    
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     func getuserdetails(){
         DBHelper().opensupermarketDB()
         let databaseURL = NSURL(fileURLWithPath:NSTemporaryDirectory()).URLByAppendingPathComponent("supermarket.db")
@@ -146,13 +182,23 @@ class ReorderViewController: UIViewController, UITableViewDelegate, UITableViewD
         
         namelbl.text = productname[indexPath.row]
         quantitylbl.text = type[indexPath.row]
-        pricelbl.text = "\(price[indexPath.row])"
+        pricelbl.text = "\u{20B9}" + "\(price[indexPath.row])"
         productquantity.text = "Qty: " + "\(subquantity[indexPath.row])"
         subtotal.text = "SubTotal: " + "\(subDiscountprice[indexPath.row])"
         let productimgpath = Appconstant.IMAGEURL+"Images/Products/"+imagename[indexPath.row];
-        let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
-        productimg.image = productimages
+//        let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
+        if let data = NSData(contentsOfURL: NSURL(string:productimgpath)!){
+            let productimages =  UIImage(data: NSData(contentsOfURL: NSURL(string:productimgpath)!)!)
+            productimg.image = productimages
+        }
+        else{
+            let productimages = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+            productimg.image = productimages
+        }
 
+
+        cell.layer.borderWidth = 1
+        cell.layer.borderColor = Appconstant.bgcolor.CGColor
         return cell
     }
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -263,8 +309,8 @@ class ReorderViewController: UIViewController, UITableViewDelegate, UITableViewD
             message: "",
             preferredStyle: .Alert)
         
-        let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
-            Reachability().checkconnection()
+        let action = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+            self.checkconnection()
             self.cartcountnumber += self.productname.count
             self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
         let username = self.username1

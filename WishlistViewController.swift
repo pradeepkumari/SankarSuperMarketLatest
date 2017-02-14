@@ -23,9 +23,11 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
     @IBOutlet weak var sideBarButton: UIBarButtonItem!
     @IBOutlet weak var tableView: UITableView!
     
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var cartbtn: UIButton!
     override func viewDidLoad() {
         super.viewDidLoad()
+        activityIndicator.startAnimating()
         self.cartbtn.frame = CGRectMake(self.view.frame.size.width-80, self.view.frame.size.height - 80, 45, 45)
         self.cartbtn.layer.cornerRadius = 23
         self.cartbtn.layer.shadowOpacity = 1
@@ -35,9 +37,11 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
 
         cartbtn.titleEdgeInsets = UIEdgeInsetsMake(5, -35, 0, 0)
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
+        self.cartbtn.setTitle("0", forState: .Normal)
+        cartbtn.titleLabel?.textColor = Appconstant.btngreencolor
         cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
         cartbtn.tintColor = UIColor.whiteColor()
-        cartbtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
+        cartbtn.backgroundColor = Appconstant.btngreencolor
 //        cartbtn.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 35)
         //        cartbtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
         cartbtn.userInteractionEnabled = true
@@ -49,7 +53,7 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
         sideBarButton.target = revealViewController()
         sideBarButton.action = Selector("revealToggle:")
         
-        Reachability().checkconnection()
+        checkconnection()
         getuserdetails()
        }
     override func viewWillAppear(animated: Bool) {
@@ -58,10 +62,36 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
         wishlistname.removeAll()
         cartcountnumber = 0
         Getcartcount()
-        Reachability().checkconnection()
+        checkconnection()
         getWishListDetails()
         self.view.addGestureRecognizer(self.revealViewController().panGestureRecognizer())
     }
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     func action(){
         self.performSegueWithIdentifier("go_home1", sender: self)
     }
@@ -95,9 +125,9 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
         let cell = tableView.dequeueReusableCellWithIdentifier("wishlistCell", forIndexPath: indexPath) as UITableViewCell!
         let namelbl = cell.viewWithTag(1) as! UILabel
         namelbl.text = wishlistname[indexPath.row]
-        
-        cell.layer.borderWidth = 0.5
-        cell.layer.borderColor = UIColor.grayColor().CGColor
+        cell.layer.borderWidth = 1
+        cell.layer.borderColor = Appconstant.bgcolor.CGColor
+        activityIndicator.stopAnimating()
         return cell
     }
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -155,6 +185,10 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
                 print(self.wishlistid)
                 print(self.wishlistname)
                 dispatch_async(dispatch_get_main_queue()) {
+                    if(self.wishlistid.count == 0){
+                        self.activityIndicator.stopAnimating()
+                        self.presentViewController(Alert().alert("Wish List items not found", message: ""),animated: true,completion: nil)
+                    }
                     self.tableView.reloadData()
                 } 
         }
@@ -163,7 +197,7 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
     }
     
     @IBAction func DeleteBtnAction(sender: AnyObject) {
-        Reachability().checkconnection()
+        checkconnection()
         let point = sender.convertPoint(CGPointZero, toView: tableView)
         let indexPath = self.tableView.indexPathForRowAtPoint(point)!
         
@@ -172,7 +206,7 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
             message: "",
             preferredStyle: .Alert)
         
-        let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+        let action = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
         let username = self.username1
         let password = self.password1
         let loginString = NSString(format: "%@:%@", username, password)
@@ -237,6 +271,7 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
             let nextview = segue.destinationViewController as! MovetocartViewController
             nextview.cartcountnumber = self.cartcountnumber
             nextview.wishlistLineid = wishlistid[(indexPath?.row)!]
+            nextview.wishlistname = wishlistname[(indexPath?.row)!]
         }
     }
 
@@ -253,7 +288,7 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
                 textField.placeholder = "Wish List Name"
         })
         
-        let action = UIAlertAction(title: "Ok",
+        let action = UIAlertAction(title: "OK",
             style: UIAlertActionStyle.Default,
             handler: {[weak self]
                 (paramAction:UIAlertAction!) in
@@ -262,7 +297,7 @@ class WishlistViewController: UIViewController, UITableViewDataSource, UITableVi
                     let enteredText = theTextFields[0].text
                     self!.listname = enteredText!
                     print(self!.listname)
-                   Reachability().checkconnection()
+                   self!.checkconnection()
                     let wishlistviewmodel = WishViewModel.init(UserID: self!.userid, Name: self!.listname)!
                     let serializedjson  = JSONSerializer.toJson(wishlistviewmodel)
                     print(serializedjson)

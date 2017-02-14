@@ -9,7 +9,7 @@
 import UIKit
 
 class RootViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-
+    
     var items = [String]()
     var id: Int32 = 1
     
@@ -22,29 +22,34 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
         
         self.navigationController?.navigationBarHidden = false
         
+        //        sidemenu.target = self.revealViewController()
+        //        sidemenu.action = Selector("revealToggle:")
         let backgroundImage = UIImageView(frame: CGRectMake(0, 0, 320, 800))
-
-        backgroundImage.image = UIImage(named: "greenbackground.jpeg")
-
+        
+        //        backgroundImage.image = UIImage(named: "greenbackground.jpeg")
+        self.tableView.backgroundColor = Appconstant.btngreencolor
         
         self.tableView.insertSubview(backgroundImage, atIndex: 0)
         
-
+        
         
     }
-
-     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }
-     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-     let cell = tableView.dequeueReusableCellWithIdentifier(items[indexPath.row], forIndexPath: indexPath) as UITableViewCell!
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCellWithIdentifier(items[indexPath.row], forIndexPath: indexPath) as UITableViewCell!
         
         cell.layer.borderWidth = 0.5
-        cell.layer.borderColor = UIColor.grayColor().CGColor
+        cell.layer.borderColor = UIColor.clearColor().CGColor
+        self.tableView.rowHeight = 48.0
         
-    return cell
+        cell.selectionStyle = UITableViewCellSelectionStyle.None
+        return cell
     }
-     func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+    func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
         cell.backgroundColor = UIColor.clearColor()
         
         let selectionColor = UIView() as UIView
@@ -55,11 +60,11 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-//        if(indexPath.row == 4)
-//        {
-//           let offerVC = OfferViewController()
-//           self.navigationController?.pushViewController(offerVC, animated:true)
-//        }
+        //        if(indexPath.row == 4)
+        //        {
+        //           let offerVC = OfferViewController()
+        //           self.navigationController?.pushViewController(offerVC, animated:true)
+        //        }
         
         if(indexPath.row == 7){
             
@@ -69,7 +74,7 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
                 let objectsToShare = [textToShare, myWebsite]
                 let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
                 
-//                activityVC.popoverPresentationController?.sourceView = sender
+                //                activityVC.popoverPresentationController?.sourceView = sender
                 self.presentViewController(activityVC, animated: true, completion: nil)
                 
                 if let popView = activityVC.popoverPresentationController {
@@ -77,9 +82,9 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
                     popView.sourceRect = tableView.cellForRowAtIndexPath(indexPath)!.frame
                 }
             }
-
+            
         }
-        
+            
         else if(indexPath.row == 11) {
             let alert = UIAlertController(title: "Are you sure want to logout", message: "", preferredStyle: UIAlertControllerStyle.Alert)
             alert.addAction(UIAlertAction(title: "Yes", style: UIAlertActionStyle.Default, handler: { alertAction in
@@ -114,7 +119,7 @@ class RootViewController: UIViewController, UITableViewDataSource, UITableViewDe
             alert.addAction(UIAlertAction(title: "No", style: UIAlertActionStyle.Default, handler: { alertAction in
             }))
             self.presentViewController(alert, animated: true, completion: nil)
-           
+            
         }
     }
     

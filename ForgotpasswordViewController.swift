@@ -28,11 +28,12 @@ class ForgotpasswordViewController: UIViewController {
         super.viewDidLoad()
         
         mailidtxt.text = self.emailid
-        
+        self.view.backgroundColor = UIColor.whiteColor()
         let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
         view.addGestureRecognizer(tap)
-        submit.layer.cornerRadius = 5
-        cancel.layer.cornerRadius = 5
+        submit.layer.cornerRadius = 17
+        cancel.layer.cornerRadius = 17
+        navigationController?.navigationBar.hidden = true
     }
     func textFieldDidBeginEditing(textField: UITextField) {
    
@@ -70,6 +71,32 @@ class ForgotpasswordViewController: UIViewController {
         view.endEditing(true)
     }
     
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
 
     @IBAction func SubmitOTPAction(sender: AnyObject) {
         let otp: String = self.OTPtxt.text!
@@ -82,7 +109,7 @@ class ForgotpasswordViewController: UIViewController {
             self.presentViewController(Alert().alert("Warning", message: "Enter correct password"),animated: true,completion: nil)
         }
         else {
-            Reachability().checkconnection()
+            checkconnection()
             let submitOTPViewmodel = SubmitOTP.init(EmailID: self.emailid, OTP: self.OTPtxt.text!, PhoneNumber: self.emailid, Password: self.newpwdtxt.text!)!
             let serializedjson  = JSONSerializer.toJson(submitOTPViewmodel)
             print(serializedjson)
@@ -204,7 +231,7 @@ class ForgotpasswordViewController: UIViewController {
     
     
     @IBAction func ResendOTPBtn(sender: AnyObject) {
-        Reachability().checkconnection()
+       checkconnection()
         let resendViewmodel = ResendOTP.init(EmailID: self.emailid, PhoneNumber: self.emailid)!
         let serializedjson  = JSONSerializer.toJson(resendViewmodel)
         print(serializedjson)

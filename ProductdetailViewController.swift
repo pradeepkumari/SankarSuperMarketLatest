@@ -27,12 +27,14 @@ class ProductdetailViewController: UIViewController {
     var username1 = ""
     var password1 = ""
     var cartcountnumber = 0
+    var productcartcount = 0
     
  
     @IBOutlet weak var productimg: UIImageView!
     @IBOutlet weak var productnamelbl: UILabel!
 
     @IBOutlet weak var cartbtn: UIButton!
+    
     @IBOutlet weak var pricelbl: UILabel!
     @IBOutlet weak var discount: UILabel!
     
@@ -57,9 +59,8 @@ class ProductdetailViewController: UIViewController {
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
         cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
         cartbtn.tintColor = UIColor.whiteColor()
-        cartbtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
-//        cartbtn.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 35)
-        //        cartbtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
+        cartbtn.backgroundColor = Appconstant.btngreencolor
+        cartbtn.titleLabel?.textColor = Appconstant.btngreencolor
         cartbtn.userInteractionEnabled = true
         cartbtn.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(cartbtn)
@@ -70,6 +71,8 @@ class ProductdetailViewController: UIViewController {
         quantitylbl.text = self.protype
         productimg.image = productimage
         // Do any additional setup after loading the view.
+        AddtoCart.backgroundColor = Appconstant.btngreencolor
+        AddtoCart.layer.cornerRadius = 20
         let backItem = UIBarButtonItem()
         backItem.title = ""
         navigationItem.backBarButtonItem = backItem
@@ -90,10 +93,39 @@ class ProductdetailViewController: UIViewController {
         self.presentViewController(homeview, animated: true, completion: nil)
     }
 
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
+
     @IBAction func AddtoCartBtn(sender: AnyObject) {
-        Reachability().checkconnection()
+       checkconnection()
+        if(self.productcartcount == 0){
+            self.productcartcount += 1
         self.cartcountnumber += 1
         self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+        }
         let productmodel = Productvariant.init(ID: self.individuvalid, ProductID: self.productid, ProductName: self.productname, Stock: Int(self.proquantity)!, Description: self.protype, Unit: self.prounit, Quantity: Int(self.proquantity)!, Price: Float(self.proprice)!, DiscountPercentage: Float(self.prodiscount)!, DiscountPrice: Float(self.dis_price)!)!
         
         

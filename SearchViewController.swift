@@ -9,7 +9,7 @@
 import UIKit
 
 
-class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
+class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate, UITextFieldDelegate {
 
     var categoryproductItems1 = [CategoryProduct1]()
     
@@ -19,11 +19,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     var password1 = ""
     var userid = ""
     var wishimage = [String]()
-    var alert = 0
+    
     var alertindex = 0
     var typealertno = 0
     var check = 0
     var cartid = 0
+    var chechvariable = 0
     
     var id = [Int]()
     var proid = [Int]()
@@ -44,16 +45,20 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     var wishlistname = [String]()
     var cartcountnumber = 0
 
+    var wholeProductsCount = 0
+    
     @IBOutlet weak var cartbtn: UIButton!
     @IBOutlet weak var activeIndicator: UIActivityIndicatorView!
-    @IBOutlet weak var SearchBar: UISearchBar!
+    @IBOutlet weak var searchBar: UISearchBar!
     
+
     @IBOutlet weak var tableView: UITableView!
     
     var close: UIBarButtonItem!
     var home: UIBarButtonItem!
     var searchController = UISearchController(searchResultsController: nil)
     
+    var search: UIBarButtonItem!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -70,21 +75,36 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         cartbtn.setImage(UIImage(named: "Cartimg.png"), forState: UIControlState.Normal)
         cartbtn.imageEdgeInsets = UIEdgeInsetsMake(0, 4.5, 3, 0)
         cartbtn.tintColor = UIColor.whiteColor()
-        cartbtn.backgroundColor = UIColor(red: 58.0/255.0, green: 88.0/255.0, blue: 38.0/255.0, alpha:1.0)
-//        cartbtn.titleLabel!.font = UIFont(name: "HelveticaNeue-Light", size: 35)
-        //        cartbtn.contentEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
+        cartbtn.backgroundColor = Appconstant.btngreencolor
+        cartbtn.titleLabel?.textColor = Appconstant.btngreencolor
+
         cartbtn.userInteractionEnabled = true
         cartbtn.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(cartbtn)
-//        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
-//        view.addGestureRecognizer(tap)
-        Reachability().checkconnection()
+        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
+        view.addGestureRecognizer(tap)
+        checkconnection()
         sendrequesttoserverforCartid()
         tableView.dataSource = self
         tableView.delegate = self
-        SearchBar.delegate = self
-        SearchBar.showsCancelButton = false
+        
+        //SEARCH BUTTON
+    
+        searchBar.delegate = self
+        
+        searchBar.showsCancelButton = false
+        searchBar.hidden = false
+        
+        searchBar.showsCancelButton = false
+//        sendrequesttoserverAllProduct(Appconstant.WEB_API+Appconstant.GETPRODUCT)
         getWishList()
+        let shortcut = UIKeyCommand(
+            input: "n",
+            modifierFlags: UIKeyModifierFlags.Command,
+            action: "createNewFile"
+        )
+        
+        addKeyCommand(shortcut)
 
     }
 
@@ -92,7 +112,46 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    func createNewFile(command: UIKeyCommand) {
+        print("N is clicked")
+    }
     
+    func textFieldShouldReturn(textField: UITextField) ->Bool {
+        view.endEditing(true)
+        return true
+    }
+    func keyPressed(command: UIKeyCommand) {
+        print("user pressed \(command.input)")
+    }
+    func pressKey() {
+        print("a key is pressed")
+    }
+
+    func checkconnection(){
+        if Reachability.isConnectedToNetwork() == true {
+            //            print("Internet connection OK")
+        } else {
+            print("Internet connection FAILED")
+            var alertController:UIAlertController?
+            alertController = UIAlertController(title: "No Internet",
+                message: "Check network connection",
+                preferredStyle: .Alert)
+            
+            let action = UIAlertAction(title: "Retry", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                self.checkconnection()
+            }
+            let action1 = UIAlertAction(title: "Exit", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+                exit(0)
+            }
+            alertController?.addAction(action)
+            alertController?.addAction(action1)
+            self.presentViewController(alertController!,
+                animated: true,
+                completion: nil)
+            
+        }
+        
+    }
 
     func getuserdetails(){
         DBHelper().opensupermarketDB()
@@ -125,7 +184,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     func searchBarTextDidEndEditing(searchBar: UISearchBar) {
-        print("text edit")
+        
     }
     
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
@@ -133,6 +192,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     func searchBarSearchButtonClicked(searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
     }
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
         //        filterContentForSearchText(searchController.searchBar.text!)
@@ -143,12 +203,15 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         else {
             
             check = 1
-            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "", OrderByType: "", Productname: searchBar.text!, pageSize: 50, categoryID: 0, pageNumber: 0)!
+            let pagelistviewmodel = PagelistViewModel.init(OrderByColumn: "", OrderByType: "", Productname: searchBar.text!, pageSize: 100, categoryID: 0, pageNumber: 0)!
             let serializedjson  = JSONSerializer.toJson(pagelistviewmodel)
             print(serializedjson)
             searchtext = searchBar.text!
             activeIndicator.startAnimating()
+            print(Appconstant.WEB_API+Appconstant.GET_PAGELIST)
+            print(Appconstant.WEB_API+Appconstant.GETPRODUCT)
             sendrequesttoserverFilter(Appconstant.WEB_API+Appconstant.GET_PAGELIST, value: serializedjson);
+//            sendrequesttoserverAllProduct(Appconstant.WEB_API+Appconstant.GETPRODUCT)
         }
         
         
@@ -165,9 +228,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         let wishimg = cell.viewWithTag(6) as! UIButton
         let pricelbl = cell.viewWithTag(4) as! UILabel
         let cartcountlbl = cell.viewWithTag(8) as! UILabel
+        let dropDownImage = cell.viewWithTag(3) as! UIImageView
         let btn = cell.viewWithTag(12) as! UIButton
             print(indexPath.row)
-            print(listItems[indexPath.row].Name)
+//            print(listItems[indexPath.row].Name)
             let lists = listItems[indexPath.row]
             if(lists.wish == "true"){
                 wishimg.setBackgroundImage(UIImage(named: "fav_filled.png"), forState: UIControlState.Normal)
@@ -177,14 +241,35 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             }
             
             productlbl.text = lists.Name
+        
+//        productlbl.font = UIFont(name: "Arial", size: 12)
             productimg.image = lists.ProductPhoto
             pricelbl.text = "\u{20B9}" + lists.DiscountPrice
+        pricelbl.textColor = Appconstant.btngreencolor
             cartcountlbl.text = "\(lists.cartCount)"
+//        cartcountlbl.font = UIFont(name: "Arial", size: 12)
             btn.setTitle(lists.Type, forState: UIControlState.Normal)
+        if categoryproductItems1[indexPath.row].ProductvariantList.count <= 1
+        {
+            dropDownImage.hidden = true
+            btn.layer.borderColor = UIColor.whiteColor().CGColor
+            btn.userInteractionEnabled = false
             btn.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Left
-            btn.layer.cornerRadius = 3
-            cell.layer.borderWidth = 0.5
-            cell.layer.borderColor = UIColor.grayColor().CGColor
+            
+            
+        }
+        else
+        {
+            dropDownImage.hidden = false
+            btn.layer.borderWidth = 1.2
+            btn.contentHorizontalAlignment = UIControlContentHorizontalAlignment.Center
+            btn.titleLabel?.textColor = UIColor.grayColor()
+            btn.userInteractionEnabled = true
+            btn.layer.borderColor = UIColor(red: 168.0/255.0, green: 168.0/255.0, blue: 168.0/255.0, alpha: 1.0).CGColor
+        }
+        
+        
+        btn.layer.cornerRadius = 12
 
 
 
@@ -194,18 +279,25 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             
         }
         self.activeIndicator.stopAnimating()
+        cell.userInteractionEnabled = true
         cell.selectionStyle = UITableViewCellSelectionStyle.None
+        cell.layer.borderWidth = 1
+        cell.layer.borderColor = Appconstant.bgcolor.CGColor
         return cell
     }
     
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print(listItems.count)
-        return listItems.count
+        print("catcount==>",categoryproductItems1.count)
+
+        return categoryproductItems1.count
+
     }
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        self.performSegueWithIdentifier("goto_product2", sender: self)
+        self.performSegueWithIdentifier("goto_productdescription", sender: self)
     }
+    
+
     
     func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
         let selectionColor = UIView() as UIView
@@ -223,10 +315,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         print(value)
         print(url)
-        self.categoryproductItems1.removeAll()
-        self.productvariantItems1.removeAll()
-        self.listItems.removeAll()
-        self.wishimage.removeAll()
+        
         let username = self.username1
         let password = self.password1
         let loginString = NSString(format: "%@:%@", username, password)
@@ -265,6 +354,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 print(item2["searchKey"].stringValue)
                 print(self.searchtext)
                 if(item2["searchKey"].stringValue == self.searchtext) {
+                    self.categoryproductItems1.removeAll()
+                    self.productvariantItems1.removeAll()
+                    self.listItems.removeAll()
+                    self.wishimage.removeAll()
                 for item in item2["productList"].arrayValue {
                     
                     self.id.removeAll()
@@ -282,7 +375,13 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     
                    
                     let categoryimgPath = Appconstant.IMAGEURL+"Images/Products/"+item["ImageUrl"].stringValue;
-                    let productimg =  UIImage(data: NSData(contentsOfURL: NSURL(string:categoryimgPath)!)!)
+                    let productimg : UIImage?
+                    if let data = NSData(contentsOfURL: NSURL(string:categoryimgPath)!){
+                         productimg =  UIImage(data: NSData(contentsOfURL: NSURL(string:categoryimgPath)!)!)
+                    }
+                    else{
+                         productimg = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+                    }
                     
                     self.wishimage.append(item["IsWishListed"].stringValue)
                     self.productvariantItems1 = [ProductVariantList1]()
@@ -294,16 +393,16 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                         self.name.append(product["ProductName"].stringValue)
                         self.stock.append(product["Stock"].stringValue)
                         self.type.append(product["Description"].stringValue)
-                        self.price.append(product["Price"].stringValue)
-                        self.Discountpercent.append(product["DiscountPercentage"].stringValue)
-                        self.Discountprice.append(product["DiscountPrice"].stringValue)
+                        self.price.append(String(product["Price"].doubleValue))
+                        self.Discountpercent.append(String(product["DiscountPercentage"].doubleValue))
+                        self.Discountprice.append(String(product["DiscountPrice"].doubleValue))
                         self.unit.append(product["Unit"].stringValue)
                         self.unitid.append(product["UnitID"].stringValue)
                         self.quantity.append(product["Quantity"].stringValue)
                         self.cartcount.append(product["cartCount"].intValue)
                         
                         let productvariantlist1 = ProductVariantList1(ID: product["ID"].intValue, ProductID: product["ProductID"].intValue,  ProductName: product["ProductName"].stringValue,
-                            Price: product["Price"].stringValue, Stock: product["Stock"].stringValue, DiscountPercentage: product["DiscountPercentage"].stringValue, DiscountPrice: product["DiscountPrice"].stringValue, Unit: product["Unit"].stringValue, Type: product["Description"].stringValue,
+                            Price: String(product["Price"].doubleValue), Stock: product["Stock"].stringValue, DiscountPercentage: product["DiscountPercentage"].stringValue, DiscountPrice: String(product["DiscountPrice"].doubleValue), Unit: product["Unit"].stringValue, Type: product["Description"].stringValue,
                             Quantity: product["Quantity"].stringValue, UnitID: product["UnitID"].stringValue, cartCount: product["cartCount"].intValue)!
                         self.productvariantItems1 += [productvariantlist1];
                         
@@ -322,9 +421,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     
                     
                     dispatch_async(dispatch_get_main_queue()) {
+                        self.activeIndicator.stopAnimating()
                         self.presentViewController(Alert().alert("", message: "No product items found"),animated: true,completion: nil)
                     }
-                    self.activeIndicator.stopAnimating()
+                    
                 }
                    
                     
@@ -383,10 +483,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     self.wishlistname.append(item["Name"].stringValue)
                 }
                 print(self.wishlistname)
-                if(self.alert == 1){
-                    self.alert = 0
-                    self.alertFunction()
-                }
+
         }
         
         task.resume()
@@ -494,7 +591,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         typealertno = 1
             for(var i = 0; i<self.categoryproductItems1[indexPath.row].ProductvariantList.count; i++){
                 print(self.categoryproductItems1[indexPath.row].ProductvariantList.count)
-                alertView1.addButtonWithTitle("\(self.categoryproductItems1[indexPath.row].ProductvariantList[i].Type)" + " - " + "Rs." + "\(self.categoryproductItems1[indexPath.row].ProductvariantList[i].Price)")
+                alertView1.addButtonWithTitle("\(self.categoryproductItems1[indexPath.row].ProductvariantList[i].Type)" + " - " + "Rs." + "\(self.categoryproductItems1[indexPath.row].ProductvariantList[i].DiscountPrice)")
             }
         
             alertView1.show()
@@ -549,6 +646,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 let wishviewmodel = WishlineitemViewModel.init(productVariantID: listItems[wishpath].ProductVariantID, productID: listItems[wishpath].ProductID, wishlistID: wishlistid[buttonIndex])!
                 let serializedjson  = JSONSerializer.toJson(wishviewmodel)
                 print(serializedjson)
+            
                 CreateWishListItem(Appconstant.WEB_API+Appconstant.CREATE_WISH_LIST_LINEITEM, value: serializedjson)
                 
             
@@ -566,18 +664,17 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 {(textField: UITextField!) in
                     textField.placeholder = "Wishlist Name"
             })
-            let action = UIAlertAction(title: "Ok",
+            let action = UIAlertAction(title: "OK",
                 style: UIAlertActionStyle.Default,
                 handler: {[weak self]
                     (paramAction:UIAlertAction!) in
                     if let textFields = alertController?.textFields{
                         let theTextFields = textFields as [UITextField]
                         let enteredText = theTextFields[0].text
-                        print(enteredText!)
                         let wishlistviewmodel = WishViewModel.init(UserID: self!.userid, Name: enteredText!)!
                         let serializedjson  = JSONSerializer.toJson(wishlistviewmodel)
                         print(serializedjson)
-                        self!.alert = 1
+                        self!.activeIndicator.startAnimating()
                         self!.CreateWishListinServer(Appconstant.WEB_API+Appconstant.CREATE_WISH_LIST, value: serializedjson)
                         
                         
@@ -639,16 +736,14 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 
                 let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
                 print("responseString = \(responseString)")
-                self.wishlistid.removeAll()
-                self.wishlistname.removeAll()
+
                 let json = JSON(data: data!)
-                for item in json["result"].arrayValue {
+                let item = json["result"]
                     self.wishlistid.append(item["ID"].stringValue)
                     self.wishlistname.append(item["Name"].stringValue)
-                }
-                if(self.alert == 1){
-                    self.getWishList()
-                }
+
+                    self.alertFunction()
+
         }
         task.resume()
     }
@@ -657,8 +752,11 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     @IBAction func PlusBtn(sender: AnyObject) {
         let point = sender.convertPoint(CGPointZero, toView: tableView)
         let indexPath = self.tableView.indexPathForRowAtPoint(point)!.row
+        if(listItems[indexPath].cartCount == 0){
         self.cartcountnumber += 1
         self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+        }
+        
         listItems[indexPath].cartCount = listItems[indexPath].cartCount + 1
         self.tableView.reloadData()
         
@@ -673,6 +771,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         print(Appconstant.WEB_API+Appconstant.ADD_TO_CART)
         
         sendrequesttoserverAddcart(Appconstant.WEB_API+Appconstant.ADD_TO_CART, value: serializedjson)
+        if(listItems[indexPath].cartCount == 1){
+            self.presentViewController(Alert().alert("", message: "Item added to cart successfully"),animated: true,completion: nil)
+        }
+        
     }
     
     @IBAction func MinusBtn(sender: AnyObject) {
@@ -680,8 +782,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         let indexPath = self.tableView.indexPathForRowAtPoint(point)!
         
         if(listItems[indexPath.row].cartCount > 1){
-            self.cartcountnumber -= 1
-            self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
+//            if(Int(listItems[indexPath.row].Quantity)! == 1){
+//            self.cartcountnumber -= 1
+//            }
+//            self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
             listItems[indexPath.row].cartCount = listItems[indexPath.row].cartCount - 1
             self.tableView.reloadData()
             let decrementmodel = DecrementViewModel.init(userId: userid, productId: listItems[indexPath.row].ProductID, productVariantId: listItems[indexPath.row].ProductVariantID)!
@@ -698,7 +802,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 message: "",
                 preferredStyle: .Alert)
             
-            let action = UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
+            let action = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in
                 self.cartcountnumber -= 1
                 self.cartbtn.setTitle("\(self.cartcountnumber)", forState: .Normal)
                 self.listItems[indexPath.row].cartCount = self.listItems[indexPath.row].cartCount - 1
@@ -802,9 +906,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 else {
                     let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
                     print("responseString = \(responseString)")
-                    dispatch_async(dispatch_get_main_queue()) {
-                        self.presentViewController(Alert().alert("", message: "Item added to cart successfully"),animated: true,completion: nil)
-                    }
+                
                 }
         }
         
@@ -813,9 +915,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if(segue.identifier == "goto_product2") {
+        if(segue.identifier == "goto_productdescription") {
             let nextviewcontroller = segue.destinationViewController as! ProductdetailViewController
-            let indexPath = self.tableView.indexPathForSelectedRow
+            let point = sender!.convertPoint(CGPointZero, toView: tableView)
+            let indexPath = self.tableView.indexPathForRowAtPoint(point)
           
                 
                 nextviewcontroller.productimage = self.categoryproductItems1[(indexPath?.row)!].ProductPhoto
@@ -841,4 +944,146 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         view.endEditing(true)
 //        cartbtn.frame = CGRectMake(522, 822, 45, 45)
     }
+    
+    
+//    func sendrequesttoserverAllProduct(url : String)
+//    {
+//        
+//        
+//        print(url)
+//        self.categoryproductItems1.removeAll()
+//        self.productvariantItems1.removeAll()
+//        self.listItems.removeAll()
+//        let username = self.username1
+//        let password = self.password1
+//        let loginString = NSString(format: "%@:%@", username, password)
+//        let loginData: NSData = loginString.dataUsingEncoding(NSUTF8StringEncoding)!
+//        let base64LoginString = "Basic "+loginData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
+//        
+//        let request = NSMutableURLRequest(URL: NSURL(string: url)!)
+//        request.HTTPMethod = "GET"
+//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//        request.addValue(base64LoginString, forHTTPHeaderField: "Authorization")
+//        request.addValue(Appconstant.TENANT, forHTTPHeaderField: "TENANT")
+//        
+////        request.HTTPBody = value.dataUsingEncoding(NSUTF8StringEncoding)
+//        
+//        let task = NSURLSession.sharedSession().dataTaskWithRequest(request)
+//            { data, response, error in
+//                guard error == nil && data != nil else {                                                          // check for fundamental networking error
+//                    print("ERROR")
+//                    print("response = \(response)")
+//                    return
+//                }
+//                
+//                if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {           // check for http errors
+//                    print("statusCode should be 200, but is \(httpStatus.statusCode)")
+//                    print("response==> = \(response)")
+//                }
+//                
+//                
+//                let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding)
+//                print("")
+//                print("")
+//                print("responseStringresponse==> = \(responseString)")
+//                let json = JSON(data: data!)
+//                print("responseStringJSON==> = \(json)")
+//                
+//                let item2 = json["result"]
+////                if(item2["searchKey"].stringValue == self.searchtext) {
+////                    for item in item2["productList"].arrayValue {
+//                    print("prod_count==>>",item2.count)
+//                
+//                        
+//                        
+//                        
+//                for var i = 0; i<10; i++
+//                {
+//                    self.id.removeAll()
+//                    self.proid.removeAll()
+//                    self.name.removeAll()
+//                    self.stock.removeAll()
+//                    self.type.removeAll()
+//                    self.price.removeAll()
+//                    self.Discountpercent.removeAll()
+//                    self.Discountprice.removeAll()
+//                    self.unit.removeAll()
+//                    self.unitid.removeAll()
+//                    self.quantity.removeAll()
+//                    self.cartcount.removeAll()
+//                    
+//                    print("product==>",item2[i])
+//                        self.productvariantItems1 = [ProductVariantList1]()
+//                        
+//                    for product in  item2[i]["ProductVariantList"].arrayValue {
+//                            
+//                        
+//                            self.id.append(product["ID"].intValue)
+//                            self.proid.append(product["ProductID"].intValue)
+//                            self.name.append(product["ProductName"].stringValue)
+//                            self.stock.append(product["Stock"].stringValue)
+//                            self.type.append(product["Description"].stringValue)
+//                            self.price.append(String(product["Price"].doubleValue))
+//                            self.Discountpercent.append(product["DiscountPercentage"].stringValue)
+//                            self.Discountprice.append(product["DiscountPrice"].stringValue)
+//                            self.unit.append(product["Unit"].stringValue)
+//                            self.unitid.append(product["UnitID"].stringValue)
+//                            self.quantity.append(product["Quantity"].stringValue)
+//                            self.cartcount.append(product["cartCount"].intValue)
+//                            
+//                            let productvariantlist1 = ProductVariantList1(ID: product["ID"].intValue, ProductID: product["ProductID"].intValue,  ProductName: product["ProductName"].stringValue,
+//                                Price: product["Price"].stringValue, Stock: product["Stock"].stringValue, DiscountPercentage: product["DiscountPercentage"].stringValue, DiscountPrice: product["DiscountPrice"].stringValue, Unit: product["Unit"].stringValue, Type: product["Description"].stringValue,
+//                                Quantity: product["Quantity"].stringValue, UnitID: product["UnitID"].stringValue, cartCount: product["cartCount"].intValue)!
+//                            self.productvariantItems1 += [productvariantlist1];
+//                        
+//                }
+//                
+//                        if(item2[i]["ImageUrl"].stringValue.isEmpty){
+//                            let defaultimg = UIImage(named: "loading_sqr.png")
+//                            let categoryproduct1 = CategoryProduct1(ID: item2[i]["ID"].stringValue, Name: item2[i]["Name"].stringValue, Description: item2[i]["Description"].stringValue,  ProductPhoto : defaultimg!, Productimgurl: item2[i]["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems1)!
+//                            
+//                            let list = List(ID: item2[i]["ID"].stringValue, Name: item2[i]["Name"].stringValue, Description: item2[i]["Description"].stringValue, ProductPhoto: defaultimg!, Productimgurl: item2[i]["ImageUrl"].stringValue, ProductVariantID: self.id[0], ProductID: self.proid[0], ProductName: self.name[0], Price: self.price[0], Stock: self.stock[0], DiscountPercentage: self.Discountpercent[0], DiscountPrice: self.Discountprice[0], Unit: self.unit[0], Type: self.type[0], Quantity: self.quantity[0], UnitID: self.unitid[0], cartCount: self.cartcount[0], wish: item2[i]["IsWishListed"].stringValue)!
+//                            
+//                            self.categoryproductItems1 += [categoryproduct1];
+//                            print(self.categoryproductItems1.count)
+//                            self.listItems += [list];
+//                            print(list.Name)
+//                            
+//                        }
+//                
+//                        else{
+//                            print("item==>>",item2[i]["ImageUrl"].stringValue)
+//                            let categoryimgPath = Appconstant.IMAGEURL+"Images/Products/"+item2[i]["ImageUrl"].stringValue;
+////                            let productimg =  UIImage(data: NSData(contentsOfURL: NSURL(string:categoryimgPath)!)!)
+//                            var productimg: UIImage? = UIImage(contentsOfFile: categoryimgPath)
+//                            if productimg == nil {
+//                                productimg = UIImage(data: NSData(contentsOfURL: NSURL(string: "https://bplus1.blob.core.windows.net/cdn/bplus_sankarsupermarket/Images/Business/loading_sqr.png")!)!)
+//                            }
+//                            let categoryproduct1 = CategoryProduct1(ID: item2[i]["ID"].stringValue, Name: item2[i]["Name"].stringValue, Description: item2[i]["Description"].stringValue,  ProductPhoto : productimg!, Productimgurl: item2[i]["ImageUrl"].stringValue, ProductvariantList: self.productvariantItems1)!
+//                            
+//                            let list = List(ID: item2[i]["ID"].stringValue, Name: item2[i]["Name"].stringValue, Description: item2[i]["Description"].stringValue, ProductPhoto: productimg!, Productimgurl: item2[i]["ImageUrl"].stringValue, ProductVariantID: self.id[0], ProductID: self.proid[0], ProductName: self.name[0], Price: self.price[0], Stock: self.stock[0], DiscountPercentage: self.Discountpercent[0], DiscountPrice: self.Discountprice[0], Unit: self.unit[0], Type: self.type[0], Quantity: self.quantity[0], UnitID: self.unitid[0], cartCount: self.cartcount[0], wish: item2[i]["IsWishListed"].stringValue)!
+//                            
+//                            self.categoryproductItems1 += [categoryproduct1];
+//                            self.listItems += [list];
+//                            print(list.Name)
+//                        }
+//                    
+//                }
+//            }
+////                    }
+//                    
+//                    print(self.categoryproductItems1.count)
+//                    dispatch_async(dispatch_get_main_queue()) {
+//                        self.tableView.reloadData()
+//                    }
+////                }
+//        
+//        task.resume()
+//        
+//    }
+//    
+
+    
+    
+    
 }
